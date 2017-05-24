@@ -1,0 +1,6 @@
+appdirs==1.4.3
+base58==0.2.5
+ecdsa==0.13
+packaging==16.8
+pyparsing==2.2.0
+six==1.10.0
