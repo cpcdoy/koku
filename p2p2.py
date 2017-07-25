@@ -13,7 +13,7 @@ class KokuMessageType(Enum):
 
 class KokuStruct():
     def __init__(self):
-        self.array = []
+        self.data = []
         self.type = 0
 
 class KokuNetwork():
@@ -73,10 +73,10 @@ class KokuNetwork():
             try:
                 data = clientsoc.recv(self.buffsize)
                 if not data:
-                    break
+                    continue
                 self.handleKokuProtocol(data)
             except:
-                break
+                continue
         clientsoc.close()
         self.removePeer(clientaddr)
 
@@ -86,7 +86,8 @@ class KokuNetwork():
         if msgType == KokuMessageType.GET_ADDR:
             self.broadcastMessage(msgType + 1, self.knownPeers)
         if msgType == KokuMessageType.ADDR:
-            print('Not implemented')
+            for peer in kokuStruct.data:
+                self.addPeerAndConnect(peer)
         if msgType == KokuMessageType.GET_DATA:
             self.broadcastMessage(msgType + 1, 'lol')
         if msgType == KokuMessageType.DATA:
@@ -131,7 +132,7 @@ def main():
     time.sleep(3)
     p.addPeerAndConnect(sys.argv[1], int(sys.argv[3]))
     for i in range(3):
-        p.broadcastMessage(KokuMessageType.ADDR, p.knownPeers)
+        p.broadcastMessage(KokuMessageType.GET_ADDR, p.knownPeers)
         time.sleep(1)
         p.addPeerAndConnect(sys.argv[1], int(sys.argv[3]))
         print('sending')
