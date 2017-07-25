@@ -1,15 +1,8 @@
 #!/usr/bin/env python3
 
+from common.address import *
 from optparse import OptionParser
-import ecdsa
-import base58
-import hashlib
 from common.transaction import Transaction
-
-def getAddr(vkey):
-    m = hashlib.sha256()
-    m.update(vkey.to_string())
-    return base58.b58encode(m.digest())
 
 if __name__ == "__main__":
     parser = OptionParser(description="This script is useed to interact with the Koku crypto-currency.")
@@ -20,12 +13,7 @@ if __name__ == "__main__":
     args, trash = parser.parse_args()
 
     if args.key:
-        with open('.Koku.pem', 'wb') as f:
-            sk = ecdsa.SigningKey.generate(curve=ecdsa.SECP256k1)
-            f.write(sk.to_pem())
-            print("Key has been generated and saved under `.Koku.pem`, don't lose it!")
-            addr = getAddr(sk.get_verifying_key())
-            print("Your address is:", addr)
+        print("Your address is:", genKey())
     else:
         with open('.Koku.pem', 'rb') as f:
             sk = ecdsa.SigningKey.from_pem(f.read())
