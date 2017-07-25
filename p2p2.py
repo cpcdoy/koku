@@ -7,19 +7,18 @@ from enum import Enum
 
 class KokuMessageType(Enum):
     GET_ADDR = 1
-    GET_DATA = 2
-    ADDR = 3
+    ADDR = 2
+    GET_DATA = 3
     DATA = 4
-
 
 class KokuStruct():
     def __init__(self):
         self.array = []
         self.type = 0
 
-class Peer():
+class KokuNetwork():
     def __init__(self, typ, publicKey, signature, port = 55555):
-        self.ip = '127.0.0.1'
+        self.ip = ''
         self.PORT = port
         self.type = typ #client / miner
         self.__publicKey = publicKey
@@ -82,9 +81,16 @@ class Peer():
         self.removePeer(clientaddr)
 
     def handleKokuProtocol(self, data):
-        deserialized = pickle.loads(data)
-        print('koku struct:', deserialized.type)
-        print('test protocol')
+        kokuStruct = pickle.loads(data)
+        msgType = KokuStruct.type
+        if msgType == KokuMessageType.GET_ADDR:
+            self.broadcastMessage(msgType + 1, self.knownPeers)
+        if msgType == KokuMessageType.ADDR:
+            print('Not implemented')
+        if msgType == KokuMessageType.GET_DATA:
+            self.broadcastMessage(msgType + 1, 'lol')
+        if msgType == KokuMessageType.DATA:
+            print('Not implemented')
 
     def removePeer(self, clientaddr):
         self.peersSoc.pop(clientaddr, None)
@@ -120,7 +126,7 @@ class Peer():
         self.serverSoc.close()
 
 def main():
-    p = Peer('miner', 'lol', 'lol', int(sys.argv[2]))
+    p = KokuNetwork('miner', 'lol', 'lol', int(sys.argv[2]))
 
     time.sleep(3)
     p.addPeerAndConnect(sys.argv[1], int(sys.argv[3]))
