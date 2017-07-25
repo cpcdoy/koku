@@ -9,7 +9,6 @@ class Block:
         self.prev = prev
         self.root = root
         self.time = int(round(time.time()))
-        #self.time = time.gmtime()
         self.bits = 20
         self.pad = random.randrange(2 ** 32)
 

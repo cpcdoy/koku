@@ -58,10 +58,10 @@ class gpu_miner:
         exec_evt = self.miner.sha256_crypt_kernel(self.queue, (globalThreads, ), (localThreads, ), data_info_buf,  plain_key_buf, output_buf)
         exec_evt.wait()
         cl.enqueue_read_buffer(self.queue, output_buf, output).wait()
-        
+
         for j in range(self.block_count):
             for i in range(8):
                 print(format(output[j * 8 + i], '02x'))
             print('Truth: ', hashlib.sha256(self.blocks[j * self.data_info[0]:(j+1) * self.data_info[0]]).hexdigest())
-        
+
         print('Time to compute: ', 1e-9 * (exec_evt.profile.end - exec_evt.profile.start))
