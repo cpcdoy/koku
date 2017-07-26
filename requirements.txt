@@ -3,7 +3,7 @@ attrs==17.2.0
 Automat==0.6.0
 base58==0.2.5
 constantly==15.1.0
-daemon==1.1
+daemonize==2.4.7
 ecdsa==0.13
 incremental==17.5.0
 ipaddress==1.0.18
