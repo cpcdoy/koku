@@ -16,6 +16,7 @@ pid = "/tmp/koku.pid"
 sk = None
 addr = ''
 chain = [ Block(None, None) ]
+net = None
 
 def getBlock(net, hashcode):
     #get the block to corresponding hashcode from net
@@ -33,14 +34,7 @@ def updateChain(net):
     return checkChain(chain)
 
 def main():
-    logging.basicConfig(
-        filename='/tmp/koku.log',
-        level=logging.DEBUG, format='%(asctime)s [%(levelname)s] %(message)s',
-    )
-    logging.info('Daemon is starting')
-    logging.info('Daemon is using address: ' + addr)
     #J'ai ajouté logging ici pour que le network puisse en faire. C'est dans /tmp/koku.log
-    net = KokuNetwork('miner', logging)
     #Ici il faut récupérer pleins de peers, je pense que c'est bon.
     net.broadcastMessage(KokuMessageType.GET_ADDR, [])
     logging.info('Peer is fetching addresses')
@@ -63,5 +57,12 @@ if __name__ == "__main__":
         with open('.Koku.pem', 'rb') as f:
             sk = ecdsa.SigningKey.from_pem(f.read())
             addr = getAddr(sk.get_verifying_key())
+            logging.basicConfig(
+                filename='/tmp/koku.log',
+                level=logging.DEBUG, format='%(asctime)s [%(levelname)s] %(message)s',
+            )
+            logging.info('Daemon is starting')
+            logging.info('Daemon is using address: ' + addr)
+            net = KokuNetwork('miner', logging)
             daemon = Daemonize(app="koku_miner", pid=pid, action=main)
             daemon.start()
