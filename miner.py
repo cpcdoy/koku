@@ -4,11 +4,16 @@ import daemon
 from common.address import *
 from common.block import Block
 from optparse import OptionParser
+from common.p2p2 import KokuStruct
+from common.p2p2 import KokuNetwork
+from common.p2p2 import KokuMessageType
 from common.transaction import Transaction
 
 def miner():
     sk = ecdsa.SigningKey.from_pem(f.read())
     addr = getAddr(sk.get_verifying_key())
+    net = KokuNetwork('miner')
+    net.broadcastMessage(KokuMessageType.GET_ADDR, [])
 
 if __name__ == "__main__":
     parser = OptionParser(description="This script is useed to mine the Koku crypto-currency.")

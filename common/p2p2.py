@@ -17,13 +17,11 @@ class KokuStruct():
         self.type = 0
 
 class KokuNetwork():
-    def __init__(self, typ, publicKey, signature, configFilename = 'addr.txt', port = 55555):
+    def __init__(self, typ, configFilename = 'addr.txt', port = 55555):
         self.ip = ''
         self.PORT = port
         self.type = typ #client / miner
         self.configFilename = configFilename
-        self.__publicKey = publicKey
-        self.__signature = signature
         self.knownPeers = set()
         self.peersSoc = {}
         self.Init()
@@ -54,7 +52,7 @@ class KokuNetwork():
 
         except Exception as inst:
             print(type(inst))
-            print(inst.args) 
+            print(inst.args)
         pass
 
     def __getMyIpAddress(self):
@@ -93,7 +91,7 @@ class KokuNetwork():
             except Exception as inst:
                 print(type(inst))    # the exception instance
                 print(inst.args)     # arguments stored in .args
-                print(inst)          # __str__ allows 
+                print(inst)          # __str__ allows
                 x, y = inst.args
                 print('x =', x)
                 print('y =', y)
@@ -144,7 +142,7 @@ class KokuNetwork():
             print('AddPeerAndConnect')
             print(type(inst))    # the exception instance
             print(inst.args)     # arguments stored in .args
-            print(inst)          # __str__ allows 
+            print(inst)          # __str__ allows
             x, y = inst.args
             print('x =', x)
             print('y =', y)
@@ -155,7 +153,7 @@ class KokuNetwork():
         self.serverSoc.close()
 
 def main():
-    p = KokuNetwork('miner', 'lol', 'lol')
+    p = KokuNetwork('miner')
 
     time.sleep(3)
     p.addPeerAndConnect(sys.argv[1], int(sys.argv[3]))
