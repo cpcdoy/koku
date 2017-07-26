@@ -72,5 +72,5 @@ if __name__ == "__main__":
                 addr = getAddr(sk.get_verifying_key())
                 logging.info('Daemon is starting')
                 logging.info('Daemon is using address: ' + addr)
-                #net = KokuNetwork('miner', logging)
+                net = KokuNetwork('miner', logging)
                 daemon.start()
