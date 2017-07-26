@@ -12,6 +12,8 @@ from common.p2p2 import KokuMessageType
 from common.transaction import Transaction
 
 pid = "/tmp/koku.pid"
+sk = None
+addr = ''
 
 def main():
     logging.basicConfig(
@@ -19,9 +21,7 @@ def main():
         level=logging.DEBUG, format='%(asctime)s [%(levelname)s] %(message)s',
     )
     logging.info('Daemon is starting')
-        #sk = ecdsa.SigningKey.from_pem(f.read())
-        #addr = getAddr(sk.get_verifying_key())
-        #logging.info('Koku address found: ' + addr)
+    logging.info('Daemon is using address: ' + addr)
     net = KokuNetwork('miner')
     net.broadcastMessage(KokuMessageType.GET_ADDR, [])
     logging.info('Peer is fetching addresses')
@@ -36,5 +36,8 @@ if __name__ == "__main__":
     if args.key:
         print("Your address is:", genKey())
     else:
-        daemon = Daemonize(app="koku_miner", pid=pid, action=main)
-        daemon.start()
+        with open('.Koku.pem', 'rb') as f:
+            sk = ecdsa.SigningKey.from_pem(f.read())
+            addr = getAddr(sk.get_verifying_key())
+            daemon = Daemonize(app="koku_miner", pid=pid, action=main)
+            daemon.start()
