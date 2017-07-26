@@ -12,6 +12,21 @@ class Block:
         self.bits = 20
         self.pad = random.randrange(2 ** 32)
 
+    def setTransactions(self, transactions):
+        self.transactions = transactions
+
+    #Returns a tuple indicating if this block is the last one where addr spent
+    #The second term of the tuple is the amount earned by addr in this block
+    def getIncome(self, addr):
+        last = False
+        total = 0
+        for t in self.transactions:
+            if t.utxo == addr:
+                if t.sender == addr:
+                    last = True
+                total += t.amount
+        return (last, total)
+
     def getPack(self):
         prev_encode = self.prev.encode()
         root_encode = self.root.encode()
@@ -27,3 +42,13 @@ def checkChain(chain):
         m.update(b.getPack())
         prev = m.digest()
     return True
+
+def getAmountAvailable(addr, chain):
+    rev = chain[::-1]
+    i = 0
+    ans = 0
+    last = False
+    while i < len(rev) and not last:
+        last, amount = getIncome(rev[i])
+        ans += amount
+    return ans
