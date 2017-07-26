@@ -7,7 +7,7 @@ from common.block import Block
 from daemonize import Daemonize
 from optparse import OptionParser
 from common.p2p2 import KokuStruct
-from common.block import CheckChain
+from common.block import checkChain
 from common.p2p2 import KokuNetwork
 from common.p2p2 import KokuMessageType
 from common.transaction import Transaction
