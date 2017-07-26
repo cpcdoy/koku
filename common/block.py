@@ -18,12 +18,12 @@ class Block:
 
         return struct.pack('ssIII', prev_encode, root_encode, self.time, self.bits, self.pad)
 
-    def checkChain(chain):
-        prev = None
-        for b in chain:
-            if not prev is None and prev != b.prev:
-                return False
-            m = hashlib.sha256()
-            m.update(b.getPack())
-            prev = m.digest()
-        return True
+def checkChain(chain):
+    prev = None
+    for b in chain:
+        if not prev is None and prev != b.prev:
+            return False
+        m = hashlib.sha256()
+        m.update(b.getPack())
+        prev = m.digest()
+    return True

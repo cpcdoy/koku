@@ -1,3 +1,4 @@
+import logging
 import socket
 import _thread as thread
 import time
@@ -17,10 +18,11 @@ class KokuStruct():
         self.type = 0
 
 class KokuNetwork():
-    def __init__(self, typ, configFilename = 'addr.txt', port = 55555):
+    def __init__(self, typ, logging, configFilename = 'addr.txt', port = 55555):
         self.ip = ''
         self.PORT = port
         self.type = typ #client / miner
+        self.logging = logging # Logging configuration
         self.configFilename = configFilename
         self.knownPeers = set()
         self.peersSoc = {}
@@ -35,13 +37,13 @@ class KokuNetwork():
             self.serverSoc = None
             self.serverStatus = 0
         serveraddr = (self.ip, self.PORT)
-        print('serveraddr:', serveraddr)
+        logging.info('serveraddr: ' + str(serveraddr[0]) + ':' + str(serveraddr[1]))
         try:
             self.serverSoc = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             self.serverSoc.bind(serveraddr)
             self.serverSoc.listen(5)
             self.myIpAddress = self.__getMyIpAddress()
-            print("****************", self.myIpAddress)
+            logging.info('****************' + self.myIpAddress)
             thread.start_new_thread(self.listenPeers,())
             self.serverStatus = 1
 
@@ -51,8 +53,8 @@ class KokuNetwork():
                 self.addPeerAndConnect(addr)
 
         except Exception as inst:
-            print(type(inst))
-            print(inst.args)
+            logging.error(type(inst))
+            logging.error((inst.args))
         pass
 
     def __getMyIpAddress(self):
@@ -125,27 +127,28 @@ class KokuNetwork():
             self.peersSoc[peerIp] = peerSoc
 
     def addPeerAndConnect(self, peerIp, peerPort = 55555):
+        logging.log('Fetching new peers.')
         if self.serverStatus == 0:
           return
         clientaddr = (peerIp, peerPort)
-        print('client_addr = ', clientaddr)
-        print('peerIp:', peerIp)
+        logging.info('client_addr = ', clientaddr)
+        logging.info('peerIp:', peerIp)
         if (peerIp in self.knownPeers):
             return
         try:
-            print('Ok adding')
+            logging.info('Ok adding')
             clientsoc = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             clientsoc.connect(clientaddr)
             self.addPeer(clientsoc, peerIp)
             thread.start_new_thread(self.handlePeerInteractions, (clientsoc, clientaddr))
         except Exception as inst:
-            print('AddPeerAndConnect')
-            print(type(inst))    # the exception instance
-            print(inst.args)     # arguments stored in .args
-            print(inst)          # __str__ allows
+            logging.error('AddPeerAndConnect')
+            logging.error(type(inst))    # the exception instance
+            logging.error(inst.args)     # arguments stored in .args
+            logging.error(inst)          # __str__ allows
             x, y = inst.args
-            print('x =', x)
-            print('y =', y)
+            logging.error('x =', x)
+            logging.error('y =', y)
 
     def closeAll(self):
         for peer in self.peersSoc.values():
@@ -153,7 +156,11 @@ class KokuNetwork():
         self.serverSoc.close()
 
 def main():
-    p = KokuNetwork('miner')
+    logging.basicConfig(
+        filename='/tmp/koku.log',
+        level=logging.DEBUG, format='%(asctime)s [%(levelname)s] %(message)s',
+    )
+    p = KokuNetwork('miner', logging)
 
     time.sleep(3)
     p.addPeerAndConnect(sys.argv[1], int(sys.argv[3]))
