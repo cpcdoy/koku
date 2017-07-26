@@ -17,13 +17,14 @@ class KokuStruct():
         self.type = 0
 
 class KokuNetwork():
-    def __init__(self, typ, publicKey, signature, port = 55555):
+    def __init__(self, typ, publicKey, signature, configFilename = 'addr.txt', port = 55555):
         self.ip = ''
         self.PORT = port
         self.type = typ #client / miner
+        self.configFilename = configFilename
         self.__publicKey = publicKey
         self.__signature = signature
-        self.knownPeers = []
+        self.knownPeers = set()
         self.peersSoc = {}
         self.Init()
 
@@ -36,16 +37,32 @@ class KokuNetwork():
             self.serverSoc = None
             self.serverStatus = 0
         serveraddr = (self.ip, self.PORT)
+        print('serveraddr:', serveraddr)
         try:
             self.serverSoc = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             self.serverSoc.bind(serveraddr)
             self.serverSoc.listen(5)
+            self.myIpAddress = self.__getMyIpAddress()
+            print("****************", self.myIpAddress)
             thread.start_new_thread(self.listenPeers,())
             self.serverStatus = 1
+
+            with open(self.configFilename) as configFile:
+                addrs = configFile.read().split()
+            for addr in addrs:
+                self.addPeerAndConnect(addr)
+
         except Exception as inst:
             print(type(inst))
             print(inst.args) 
         pass
+
+    def __getMyIpAddress(self):
+        return [l for l in ([ip for ip in \
+                    socket.gethostbyname_ex(socket.gethostname())[2] if not \
+                    ip.startswith("127.")][:1], [[(s.connect(('8.8.8.8', \
+                    53)), s.getsockname()[0], s.close()) for s in \
+                    [socket.socket(socket.AF_INET, socket.SOCK_DGRAM)]][0][1]]) if l][0][0]
 
     def sendMessage(self, ip, msg):
         pass
@@ -53,18 +70,16 @@ class KokuNetwork():
     def broadcastMessage(self, type, msg):
         if self.serverStatus == 0:
           return
-        if msg == '':
-            return
         for client in self.peersSoc.values():
           koku = KokuStruct()
-          koku.arr = msg
+          koku.data = msg
           koku.type = type
           client.send(pickle.dumps(koku))
 
     def listenPeers(self):
         while 1:
           clientsoc, clientaddr = self.serverSoc.accept()
-          self.addPeer(clientsoc, clientaddr)
+          self.addPeer(clientsoc, clientaddr[0])
           thread.start_new_thread(self.handlePeerInteractions, (clientsoc, clientaddr))
         self.serverSoc.close()
 
@@ -75,21 +90,31 @@ class KokuNetwork():
                 if not data:
                     continue
                 self.handleKokuProtocol(data)
-            except:
+            except Exception as inst:
+                print(type(inst))    # the exception instance
+                print(inst.args)     # arguments stored in .args
+                print(inst)          # __str__ allows 
+                x, y = inst.args
+                print('x =', x)
+                print('y =', y)
                 continue
         clientsoc.close()
         self.removePeer(clientaddr)
 
     def handleKokuProtocol(self, data):
         kokuStruct = pickle.loads(data)
-        msgType = KokuStruct.type
+        msgType = kokuStruct.type
+        print('KokuStruct type : ', kokuStruct.type)
+        print('KokuStruct data : ', kokuStruct.data)
         if msgType == KokuMessageType.GET_ADDR:
-            self.broadcastMessage(msgType + 1, self.knownPeers)
+            print("GET_ADDR")
+            self.broadcastMessage(KokuMessageType.ADDR, [])
         if msgType == KokuMessageType.ADDR:
             for peer in kokuStruct.data:
                 self.addPeerAndConnect(peer)
+                print("ADDR ", peer)
         if msgType == KokuMessageType.GET_DATA:
-            self.broadcastMessage(msgType + 1, 'lol')
+            self.broadcastMessage(KokuMessageType.DATA, [])
         if msgType == KokuMessageType.DATA:
             print('Not implemented')
 
@@ -97,14 +122,16 @@ class KokuNetwork():
         self.peersSoc.pop(clientaddr, None)
 
     def addPeer(self, peerSoc, peerIp):
-        self.knownPeers.append(peerIp)
-        self.peersSoc[peerIp] = peerSoc
+        if (peerIp != self.myIpAddress):
+            self.knownPeers.add(peerIp)
+            self.peersSoc[peerIp] = peerSoc
 
     def addPeerAndConnect(self, peerIp, peerPort = 55555):
         if self.serverStatus == 0:
           return
         clientaddr = (peerIp, peerPort)
         print('client_addr = ', clientaddr)
+        print('peerIp:', peerIp)
         if (peerIp in self.knownPeers):
             return
         try:
@@ -114,6 +141,7 @@ class KokuNetwork():
             self.addPeer(clientsoc, peerIp)
             thread.start_new_thread(self.handlePeerInteractions, (clientsoc, clientaddr))
         except Exception as inst:
+            print('AddPeerAndConnect')
             print(type(inst))    # the exception instance
             print(inst.args)     # arguments stored in .args
             print(inst)          # __str__ allows 
@@ -127,12 +155,12 @@ class KokuNetwork():
         self.serverSoc.close()
 
 def main():
-    p = KokuNetwork('miner', 'lol', 'lol', int(sys.argv[2]))
+    p = KokuNetwork('miner', 'lol', 'lol')
 
     time.sleep(3)
     p.addPeerAndConnect(sys.argv[1], int(sys.argv[3]))
     for i in range(3):
-        p.broadcastMessage(KokuMessageType.GET_ADDR, p.knownPeers)
+        p.broadcastMessage(KokuMessageType.GET_ADDR, [])
         time.sleep(1)
         p.addPeerAndConnect(sys.argv[1], int(sys.argv[3]))
         print('sending')
