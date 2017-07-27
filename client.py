@@ -25,7 +25,7 @@ if __name__ == "__main__":
                 print("Your address is:", addr)
             else:
                 vk = sk.get_verifying_key()
-                tr = Transaction(int(args.amount), 0, getAddr(vk), getAddr(vk), vk.to_string())
+                tr = Transaction(int(args.amount), 0, getAddr(vk), getAddr(vk), vk)
                 sig = sk.sign(tr.getPack())
                 tr.setSig(sig)
                 try:

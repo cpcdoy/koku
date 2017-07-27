@@ -2,7 +2,7 @@ import time
 import struct
 import random
 import hashlib
-from merkle import Merkle
+from common.merkle import Merkle
 
 class Block:
 
