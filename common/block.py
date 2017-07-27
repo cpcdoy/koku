@@ -51,12 +51,12 @@ class Block:
         return struct.pack('32s32s3I', prev_encode, root_encode, self.time, self.bits, self.pad)
 
     def unpack(self, buff):
-        obj = struct.unpack('32s32s3I', buff)
-        self.prev = obj[0].decode()
-        self.root = obj[1].decode()
-        self.time = obj[2]
-        self.bits = obj[3]
-        self.pad = obj[4]
+        self.prev, data = struct.unpack('32s', buff[:32])[0].decode(), buff[32:]
+        self.root, data = struct.unpack('32s', data[:32])[0].decode(), data[32:]
+        obj = struct.decode('3I', data)
+        self.time = obj[0]
+        self.bits = obj[1]
+        self.pad = obj[2]
 
 def checkChain(chain):
     prev = None
