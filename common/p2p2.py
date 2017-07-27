@@ -104,8 +104,8 @@ class KokuNetwork():
         try:
             kokuStruct = pickle.loads(data)
             msgType = kokuStruct.type
-            self.logging.info('KokuStruct type : ')
-            self.logging.info('KokuStruct data : ')
+            self.logging.info('KokuStruct type : ' + str(kokuStruct.type))
+            self.logging.info('KokuStruct data : ' + str(kokuStruct.data))
 
             if msgType == KokuMessageType.GET_ADDR:
                 self.logging.info("GET_ADDR")
@@ -117,13 +117,14 @@ class KokuNetwork():
 
             if msgType == KokuMessageType.GET_FROM_LAST:
                 self.logging.info("GET FROM LAST")
-                blockId = KokuStruct.data
+                blockId = kokuStruct.data
                 self.broadcastMessage(KokuMessageType.LAST, chain[blockId + 1:])
             if msgType == KokuMessageType.FROM_LAST:
                 self.logging.info("FROM LAST")
-                self.chain += KokuNetwork.data
+                self.chain += kokuStruct.data
+
         except Exception as inst:
-            self.logging.exception('handleKokuProtocol: ' + str(peerIp))
+            self.logging.exception('handleKokuProtocol: ')
             self.logging.error(type(inst))
             self.logging.error((inst.args))
 
