@@ -18,8 +18,7 @@ class KokuStruct():
         self.type = 0
 
 class KokuNetwork():
-    def __init__(self, typ, logging, configFilename = '/tmp/addr.txt', port = 55555):
-        logging.info("J'y suis")
+    def __init__(self, typ, logging, configFilename = 'addr.txt', port = 55555):
         self.ip = ''
         self.PORT = port
         self.type = typ #client / miner
@@ -153,11 +152,11 @@ def main():
     p = KokuNetwork('miner', logger)
 
     time.sleep(3)
-    p.addPeerAndConnect(sys.argv[1], int(sys.argv[3]))
-    for i in range(3):
+    #p.addPeerAndConnect(sys.argv[1], int(sys.argv[3]))
+    for i in range(10):
         p.broadcastMessage(KokuMessageType.GET_ADDR, [])
         time.sleep(1)
-        p.addPeerAndConnect(sys.argv[1], int(sys.argv[3]))
+        #p.addPeerAndConnect(sys.argv[1], int(sys.argv[3]))
         print('sending')
         print('known type:', type(p.knownPeers))
         #print('pickle dump:', pickle.dumps(p.knownPeers))
