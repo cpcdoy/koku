@@ -38,7 +38,8 @@ def updateChain(net):
 def main():
     #J'ai ajouté logging ici pour que le network puisse en faire. C'est dans /tmp/koku.log
     #Ici il faut récupérer pleins de peers, je pense que c'est bon.
-    #net.broadcastMessage(KokuMessageType.GET_ADDR, [])
+    net.broadcastMessage(KokuMessageType.GET_ADDR, [])
+
     logging.info('Peer is fetching addresses')
     #while not updateChain(net):
     #    logging.error('An error in the downloaded chain has been detected!')
@@ -72,5 +73,5 @@ if __name__ == "__main__":
                 addr = getAddr(sk.get_verifying_key())
                 logging.info('Daemon is starting')
                 logging.info('Daemon is using address: ' + addr)
-                #net = KokuNetwork('miner', logging)
+                net = KokuNetwork('miner', logging)
                 daemon.start()

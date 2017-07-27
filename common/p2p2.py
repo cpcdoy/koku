@@ -26,6 +26,7 @@ class KokuNetwork():
         self.configFilename = configFilename
         self.knownPeers = set()
         self.peersSoc = {}
+        self.myIpAddress = ""
         self.Init()
 
     def Init(self):
@@ -43,7 +44,6 @@ class KokuNetwork():
             self.serverSoc.bind(serveraddr)
             self.serverSoc.listen(5)
             self.myIpAddress = self.__getMyIpAddress()
-            logging.info('****************' + self.myIpAddress)
             thread.start_new_thread(self.listenPeers,())
             self.serverStatus = 1
 
@@ -53,9 +53,9 @@ class KokuNetwork():
                 self.addPeerAndConnect(addr)
 
         except Exception as inst:
+            logging.error("Init")
             logging.error(type(inst))
             logging.error((inst.args))
-        pass
 
     def __getMyIpAddress(self):
         return [l for l in ([ip for ip in \
@@ -64,17 +64,14 @@ class KokuNetwork():
                     53)), s.getsockname()[0], s.close()) for s in \
                     [socket.socket(socket.AF_INET, socket.SOCK_DGRAM)]][0][1]]) if l][0][0]
 
-    def sendMessage(self, ip, msg):
-        pass
-
     def broadcastMessage(self, type, msg):
         if self.serverStatus == 0:
           return
         for client in self.peersSoc.values():
-          koku = KokuStruct()
-          koku.data = msg
-          koku.type = type
-          client.send(pickle.dumps(koku))
+            koku = KokuStruct()
+            koku.data = msg
+            koku.type = type
+            client.send(pickle.dumps(koku))
 
     def listenPeers(self):
         while 1:
@@ -91,12 +88,9 @@ class KokuNetwork():
                     continue
                 self.handleKokuProtocol(data)
             except Exception as inst:
-                print(type(inst))    # the exception instance
-                print(inst.args)     # arguments stored in .args
-                print(inst)          # __str__ allows
-                x, y = inst.args
-                print('x =', x)
-                print('y =', y)
+                logging.error("Handle koku protocol")
+                logging.error(type(inst))
+                logging.error((inst.args))
                 continue
         clientsoc.close()
         self.removePeer(clientaddr)
@@ -104,15 +98,15 @@ class KokuNetwork():
     def handleKokuProtocol(self, data):
         kokuStruct = pickle.loads(data)
         msgType = kokuStruct.type
-        print('KokuStruct type : ', kokuStruct.type)
-        print('KokuStruct data : ', kokuStruct.data)
+        logging.info('KokuStruct type : ')
+        logging.info('KokuStruct data : ')
         if msgType == KokuMessageType.GET_ADDR:
-            print("GET_ADDR")
+            logging.info("GET_ADDR")
             self.broadcastMessage(KokuMessageType.ADDR, [])
         if msgType == KokuMessageType.ADDR:
             for peer in kokuStruct.data:
                 self.addPeerAndConnect(peer)
-                print("ADDR ", peer)
+                logging.info("ADDR ")
         if msgType == KokuMessageType.GET_DATA:
             self.broadcastMessage(KokuMessageType.DATA, [])
         if msgType == KokuMessageType.DATA:
@@ -122,17 +116,14 @@ class KokuNetwork():
         self.peersSoc.pop(clientaddr, None)
 
     def addPeer(self, peerSoc, peerIp):
-        if (peerIp != self.myIpAddress):
-            self.knownPeers.add(peerIp)
-            self.peersSoc[peerIp] = peerSoc
+        self.knownPeers.add(peerIp)
+        self.peersSoc[peerIp] = peerSoc
 
     def addPeerAndConnect(self, peerIp, peerPort = 55555):
-        logging.log('Fetching new peers.')
-        if self.serverStatus == 0:
+        logging.info('Fetching new peers.' + peerIp)
+        if self.serverStatus == 0 and peerIp != self.myIpAddress:
           return
         clientaddr = (peerIp, peerPort)
-        logging.info('client_addr = ', clientaddr)
-        logging.info('peerIp:', peerIp)
         if (peerIp in self.knownPeers):
             return
         try:
@@ -143,12 +134,8 @@ class KokuNetwork():
             thread.start_new_thread(self.handlePeerInteractions, (clientsoc, clientaddr))
         except Exception as inst:
             logging.error('AddPeerAndConnect')
-            logging.error(type(inst))    # the exception instance
-            logging.error(inst.args)     # arguments stored in .args
-            logging.error(inst)          # __str__ allows
-            x, y = inst.args
-            logging.error('x =', x)
-            logging.error('y =', y)
+            logging.error(type(inst))
+            logging.error((inst.args))
 
     def closeAll(self):
         for peer in self.peersSoc.values():

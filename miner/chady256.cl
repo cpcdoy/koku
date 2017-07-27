@@ -46,10 +46,9 @@ __kernel void sha256_crypt_kernel(__global uint *data_info,__global char *plain_
 
   int gid = get_global_id(0);
   int offset = 0;
-  for (int i = 0; i < gid * 2; i += 2)
-     offset += data_info[i];
+  for (int i = 0; i < gid; i++)
+     offset += data_info[0];
 
-  data_info = &data_info[gid * 2];
   plain_key = &plain_key[offset];
   digest = &digest[gid * 8];
 
@@ -163,6 +162,7 @@ __kernel void sha256_crypt_kernel(__global uint *data_info,__global char *plain_
       T2 = sigma0(A) + maj(A, B, C);
       H = G; G = F; F = E; E = D + T1; D = C; C = B; B = A; A = T1 + T2;
     }
+
     digest[0] += A;
     digest[1] += B;
     digest[2] += C;
