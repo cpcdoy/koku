@@ -18,24 +18,9 @@ from common.transaction import Transaction
 pid = "/tmp/koku.pid"
 sk = None
 addr = ''
-chain = [ Block(None, None) ]
+chain = [ Block(None, None, 0) ]
 net = None
 logger = None
-
-def getBlock(net, hashcode):
-    #get the block to corresponding hashcode from net
-    return 0
-
-def updateChain(net):
-    #Pour l'instant on save pas la chain
-    #Get last from net instead of None
-    block = None
-    tmp = []
-    while not block.prev is None:
-        tmp.append(block)
-        block = getBlock(net, block.prev)
-    chain = tmp[::-1]
-    return checkChain(chain)
 
 def main():
 
@@ -51,7 +36,7 @@ def main():
     #Ici il faut récupérer pleins de peers, je pense que c'est bon.
     #while not updateChain(net):
     #    logging.error('An error in the downloaded chain has been detected!')
-    
+
     #while True:
         #mine new block
         #if new block add to chain
