@@ -12,7 +12,12 @@ class Transaction:
         self.sender = str.encode(getAddr(pubKey))
 
     def getPack(self):
-        return struct.pack('IIpppp', self.amount, self.version, self.txid, self.utxo, self.pubKey, self.sender)
+        return struct.pack('IIpppp', self.amount, self.version, self.txid,
+                self.utxo, self.pubKey, self.sender)
+    
+    def getSignedPack(self):
+        return struct.pack('IIppppp', self.amount, self.version, self.txid,
+                self.utxo, self.pubKey, self.sender, self.sig)
 
     def setSig(self, sig):
         self.sig = sig

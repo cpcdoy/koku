@@ -1,7 +1,8 @@
-import hashlib
-import random
-import struct
 import time
+import struct
+import random
+import hashlib
+from merkle import Merkle
 
 class Block:
 
@@ -12,8 +13,22 @@ class Block:
         self.bits = 20
         self.pad = random.randrange(2 ** 32)
 
+    #Sets the transactions list of this block.
+    #If the Merkle root matches returns True. Returns false otherwise
     def setTransactions(self, transactions):
+        #First we get the list of transactions hashes
+        hashlist = []
+        for t in transactions:
+            m = hashlib.sha256()
+            m.update(t.getSignedPack())
+            hashlist.append(m.digest())
+
+        #Then we can compute the Merkle root given by those hashes
+        merkle = Merkle(hashlist)
+        if merkle.getRoot() != self.root:
+            return False
         self.transactions = transactions
+        return True
 
     #Returns a tuple indicating if this block is the last one where addr spent
     #The second term of the tuple is the amount earned by addr in this block
@@ -32,6 +47,14 @@ class Block:
         root_encode = self.root.encode()
 
         return struct.pack('ssIII', prev_encode, root_encode, self.time, self.bits, self.pad)
+
+    def unpack(self, buff):
+        obj = struct.unpack('ssIII', buff)
+        self.prev = obj[0].decode()
+        self.root = obj[1].decode()
+        self.time = obj[2]
+        self.bits = obj[3]
+        self.pad = obj[4]
 
 def checkChain(chain):
     prev = None
