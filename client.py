@@ -25,11 +25,14 @@ if __name__ == "__main__":
                 print("Your address is:", addr)
             else:
                 vk = sk.get_verifying_key()
-                tr = Transaction(int(args.amount), 0, getAddr(vk), getAddr(vk), vk)
-                sig = sk.sign(tr.getPack())
+                tr = Transaction(int(args.amount), 0, getAddr(vk), vk)
+                sig = sk.sign(tr.getPack(True))
                 tr.setSig(sig)
+                aux = tr.getPack()
+                foo = Transaction(13, 42, getAddr(vk), vk)
+                foo.unpack(aux)
                 try:
-                    vk.verify(sig, tr.getPack())
+                    vk.verify(sig, foo.getPack(True))
                     print("good signature")
                 except ecdsa.BadSignatureError:
                     print("BAD SIGNATURE")
