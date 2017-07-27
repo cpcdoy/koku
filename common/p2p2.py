@@ -10,8 +10,10 @@ from enum import Enum
 class KokuMessageType(Enum):
     GET_ADDR = 1
     ADDR = 2
-    GET_DATA = 3
-    DATA = 4
+    GET_FROM_lAST = 3
+    FROM_LAST = 4
+    GET_BLOCK = 5
+    BLOCK = 6
 
 class KokuStruct():
     def __init__(self):
@@ -102,6 +104,7 @@ class KokuNetwork():
         msgType = kokuStruct.type
         self.logging.info('KokuStruct type : ')
         self.logging.info('KokuStruct data : ')
+
         if msgType == KokuMessageType.GET_ADDR:
             self.logging.info("GET_ADDR")
             self.broadcastMessage(KokuMessageType.ADDR, [])
@@ -109,10 +112,17 @@ class KokuNetwork():
             for peer in kokuStruct.data:
                 self.addPeerAndConnect(peer)
                 self.logging.info("ADDR ")
-        if msgType == KokuMessageType.GET_DATA:
-            self.broadcastMessage(KokuMessageType.DATA, [])
-        if msgType == KokuMessageType.DATA:
-            print('Not implemented')
+
+        if msgType == KokuMessageType.GET_FROM_LAST:
+            hashcode = KokuStruct.data
+            index = 0
+            for i in range(len(chain)):
+                if b.prev == hashcode:
+                    index = i - 1
+            print(chain[index:])
+            self.broadcastMessage(KokuMessageType.LAST, chain[index:])
+        if msgType == KokuMessageType.FROM_LAST:
+            self.chain.append(KokuStruct.data)
 
     def removePeer(self, clientaddr):
         self.peersSoc.pop(clientaddr, None)
