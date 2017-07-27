@@ -100,24 +100,32 @@ class KokuNetwork():
         self.removePeer(clientaddr)
 
     def handleKokuProtocol(self, data):
-        kokuStruct = pickle.loads(data)
-        msgType = kokuStruct.type
-        self.logging.info('KokuStruct type : ')
-        self.logging.info('KokuStruct data : ')
 
-        if msgType == KokuMessageType.GET_ADDR:
-            self.logging.info("GET_ADDR")
-            self.broadcastMessage(KokuMessageType.ADDR, [])
-        if msgType == KokuMessageType.ADDR:
-            for peer in kokuStruct.data:
-                self.addPeerAndConnect(peer)
-                self.logging.info("ADDR ")
+        try:
+            kokuStruct = pickle.loads(data)
+            msgType = kokuStruct.type
+            self.logging.info('KokuStruct type : ')
+            self.logging.info('KokuStruct data : ')
 
-        if msgType == KokuMessageType.GET_FROM_LAST:
-            blockId = KokuStruct.data
-            self.broadcastMessage(KokuMessageType.LAST, chain[blockId + 1:])
-        if msgType == KokuMessageType.FROM_LAST:
-            self.chain += KokuNetwork.data
+            if msgType == KokuMessageType.GET_ADDR:
+                self.logging.info("GET_ADDR")
+                self.broadcastMessage(KokuMessageType.ADDR, [])
+            if msgType == KokuMessageType.ADDR:
+                for peer in kokuStruct.data:
+                    self.addPeerAndConnect(peer)
+                    self.logging.info("ADDR ")
+
+            if msgType == KokuMessageType.GET_FROM_LAST:
+                self.logging.info("GET FROM LAST")
+                blockId = KokuStruct.data
+                self.broadcastMessage(KokuMessageType.LAST, chain[blockId + 1:])
+            if msgType == KokuMessageType.FROM_LAST:
+                self.logging.info("FROM LAST")
+                self.chain += KokuNetwork.data
+        except Exception as inst:
+            self.logging.exception('handleKokuProtocol: ' + str(peerIp))
+            self.logging.error(type(inst))
+            self.logging.error((inst.args))
 
     def removePeer(self, clientaddr):
         self.peersSoc.pop(clientaddr, None)

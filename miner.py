@@ -3,7 +3,7 @@
 import os
 import time
 import signal
-import pickle
+#import pickle
 import logging
 from common.address import *
 from common.block import Block
@@ -24,16 +24,20 @@ logger = None
 
 def main():
 
-    if os.file.ispath('.koku.chain'):
-        with open('.koku.chain', 'r') as cfile:
-            chain = pickle.load(cfile)
+    #if os.file.ispath('.koku.chain'):
+    #    with open('.koku.chain', 'r') as cfile:
+    #        chain = pickle.load(cfile)
 
+    logger.info('Running koku')
     net = KokuNetwork('miner', logger, chain)
     time.sleep(3)
+    logger.info('Running koku 2')
     net.broadcastMessage(KokuMessageType.GET_ADDR, [])
     time.sleep(1)
+    logger.info('Running koku 3')
     net.broadcastMessage(KokuMessageType.GET_FROM_LAST, chain[-1].id)
     logger.info(str(len(chain)))
+    logger.info('Running koku 4')
     #J'ai ajouté logging ici pour que le network puisse en faire. C'est dans /tmp/koku.log
     #Ici il faut récupérer pleins de peers, je pense que c'est bon.
     #while not updateChain(net):
