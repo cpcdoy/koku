@@ -18,7 +18,7 @@ class KokuStruct():
         self.type = 0
 
 class KokuNetwork():
-    def __init__(self, typ, logging, configFilename = 'addr.txt', port = 55555):
+    def __init__(self, typ, logging, configFilename = '/tmp/addr.txt', port = 55555):
         self.ip = ''
         self.PORT = port
         self.type = typ #client / miner
