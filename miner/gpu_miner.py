@@ -7,36 +7,6 @@ import random
 import struct
 import time
 
-class Block:
-
-    def __init__(self, prev, root):
-        self.prev = prev
-        self.root = root
-        self.time = int(round(time.time()))
-        self.bits = 20
-        self.pad = 42#random.randrange(2 ** 32)
-
-    def __str__(self):
-        return "<Block prev:%s root:%s time:%d bits:%d pad:%d>" % (self.prev, self.root, self.time, self.bits, self.pad)
-
-    def getPack(self):
-        prev_encode = bytearray()
-        prev_encode.extend(map(ord, self.prev))
-        root_encode = bytearray()
-        root_encode.extend(map(ord, self.root))
-
-        return struct.pack('32s32s3I', prev_encode, root_encode, self.time, self.bits, self.pad)
-
-def checkChain(chain):
-    prev = None
-    for b in chain:
-        if not prev is None and prev != b.prev:
-            return False
-        m = hashlib.sha256()
-        m.update(b.getPack())
-        prev = m.digest()
-    return True
-
 class gpu_miner:
     def __init__(self):
         platform = cl.get_platforms()[0]
@@ -116,14 +86,7 @@ class gpu_miner:
                     for i in range(8):
                         print(format(output[j * 8 + i], '02x'))
                     not_found = False
+                    return self.blocks_tmp[i]
                 #print('Truth: ', hashlib.sha256(self.blocks[j * self.data_info[0]:(j+1) * self.data_info[0]]).hexdigest())
                 #print('')
             print('Time to compute: ', 1e-9 * (exec_evt.profile.end - exec_evt.profile.start))
-
-
-gpu_miner = gpu_miner()
-b = Block("73475cb40a568e8da8a045ced110137e159f890ac4da883b6b17dc651b3a8049", "a4244aa43ddd6e3ef9e64bb80f4ee952f68232aa008d3da9c78e3b627e5675c8")
-
-gpu_miner.set_block(b)
-
-gpu_miner.compute_hashes()

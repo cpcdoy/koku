@@ -43,13 +43,15 @@ class Block:
         return (last, total)
 
     def getPack(self):
-        prev_encode = self.prev.encode()
-        root_encode = self.root.encode()
+        prev_encode = bytearray()
+        prev_encode.extend(map(ord, self.prev))
+        root_encode = bytearray()
+        root_encode.extend(map(ord, self.root))
 
-        return struct.pack('ssIII', prev_encode, root_encode, self.time, self.bits, self.pad)
+        return struct.pack('32s32s3I', prev_encode, root_encode, self.time, self.bits, self.pad)
 
     def unpack(self, buff):
-        obj = struct.unpack('ssIII', buff)
+        obj = struct.unpack('32s32s3I', buff)
         self.prev = obj[0].decode()
         self.root = obj[1].decode()
         self.time = obj[2]
