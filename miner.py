@@ -31,6 +31,8 @@ def main():
     net = KokuNetwork('miner', logger, chain)
     time.sleep(3)
     net.broadcastMessage(KokuMessageType.GET_ADDR, [])
+    time.sleep(1)
+    net.broadcastMessage(KokuMessageType.GET_FROM_LAST, chain[-1].id)
     logger.info(str(len(chain)))
     #J'ai ajouté logging ici pour que le network puisse en faire. C'est dans /tmp/koku.log
     #Ici il faut récupérer pleins de peers, je pense que c'est bon.

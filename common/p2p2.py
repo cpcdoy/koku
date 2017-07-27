@@ -114,15 +114,10 @@ class KokuNetwork():
                 self.logging.info("ADDR ")
 
         if msgType == KokuMessageType.GET_FROM_LAST:
-            hashcode = KokuStruct.data
-            index = 0
-            for i in range(len(chain)):
-                if b.prev == hashcode:
-                    index = i - 1
-            print(chain[index:])
-            self.broadcastMessage(KokuMessageType.LAST, chain[index:])
+            blockId = KokuStruct.data
+            self.broadcastMessage(KokuMessageType.LAST, chain[blockId + 1:])
         if msgType == KokuMessageType.FROM_LAST:
-            self.chain.append(KokuStruct.data)
+            self.chain += KokuNetwork.data
 
     def removePeer(self, clientaddr):
         self.peersSoc.pop(clientaddr, None)
