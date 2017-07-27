@@ -3,6 +3,7 @@
 import os
 import time
 import signal
+import pickle
 import logging
 from common.address import *
 from common.block import Block
@@ -37,6 +38,11 @@ def updateChain(net):
     return checkChain(chain)
 
 def main():
+
+    if os.file.ispath('.koku.chain'):
+        with open('.koku.chain', 'r') as cfile:
+            chain = pickle.load(cfile)
+
     net = KokuNetwork('miner', logger, chain)
     time.sleep(3)
     net.broadcastMessage(KokuMessageType.GET_ADDR, [])
