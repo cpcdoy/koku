@@ -19,6 +19,7 @@ sk = None
 addr = ''
 chain = [ Block(None, None) ]
 net = None
+logger = None
 
 def getBlock(net, hashcode):
     #get the block to corresponding hashcode from net
@@ -38,9 +39,9 @@ def updateChain(net):
 def main():
     #J'ai ajouté logging ici pour que le network puisse en faire. C'est dans /tmp/koku.log
     #Ici il faut récupérer pleins de peers, je pense que c'est bon.
-    net.broadcastMessage(KokuMessageType.GET_ADDR, [])
+    #net.broadcastMessage(KokuMessageType.GET_ADDR, [])
 
-    logging.info('Peer is fetching addresses')
+    logger.info('Peer is fetching addresses')
     #while not updateChain(net):
     #    logging.error('An error in the downloaded chain has been detected!')
     while True:
@@ -58,20 +59,24 @@ if __name__ == "__main__":
     if args.key:
         print("Your address is:", genKey())
     else:
-        logging.basicConfig(
-            filename='/tmp/koku.log',
-            level=logging.DEBUG, format='%(asctime)s [%(levelname)s] %(message)s',
-        )
-        daemon = Daemonize(app="koku_miner", pid=pid, action=main)
+        logger = logging.getLogger(__name__)
+        logger.setLevel(logging.DEBUG)
+        logger.propagate = False
+        fh = logging.FileHandler('/tmp/koku.log', 'a')
+        fh.setLevel(logging.DEBUG)
+        logger.addHandler(fh)
+        keep_fds = [fh.stream.fileno()]
+
+        daemon = Daemonize(app="koku_miner", pid=pid, action=main, keep_fds=keep_fds)
         if args.stop:
             with open(pid, 'r') as f:
                 os.kill(int(f.read()), signal.SIGTERM)
-                logging.info('Daemon stopped')
+                logger.info('Daemon stopped')
         else:
             with open('.Koku.pem', 'rb') as f:
-                sk = ecdsa.SigningKey.from_pem(f.read())
-                addr = getAddr(sk.get_verifying_key())
-                logging.info('Daemon is starting')
-                logging.info('Daemon is using address: ' + addr)
-                net = KokuNetwork('miner', logging)
+                #sk = ecdsa.SigningKey.from_pem(f.read())
+                #addr = getAddr(sk.get_verifying_key())
+                logger.info('Daemon is starting')
+                #logging.info('Daemon is using address: ' + addr)
+                #net = KokuNetwork('miner', logging)
                 daemon.start()

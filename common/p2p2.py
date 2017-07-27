@@ -18,7 +18,8 @@ class KokuStruct():
         self.type = 0
 
 class KokuNetwork():
-    def __init__(self, typ, logging, configFilename = 'addr.txt', port = 55555):
+    def __init__(self, typ, logging, configFilename = '/tmp/addr.txt', port = 55555):
+        logging.info("J'y suis")
         self.ip = ''
         self.PORT = port
         self.type = typ #client / miner
@@ -38,7 +39,7 @@ class KokuNetwork():
             self.serverSoc = None
             self.serverStatus = 0
         serveraddr = (self.ip, self.PORT)
-        logging.info('serveraddr: ' + str(serveraddr[0]) + ':' + str(serveraddr[1]))
+        self.logging.info('serveraddr: ' + str(serveraddr[0]) + ':' + str(serveraddr[1]))
         try:
             self.serverSoc = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             self.serverSoc.bind(serveraddr)
@@ -53,9 +54,9 @@ class KokuNetwork():
                 self.addPeerAndConnect(addr)
 
         except Exception as inst:
-            logging.error("Init")
-            logging.error(type(inst))
-            logging.error((inst.args))
+            self.logging.exception("Init")
+            self.logging.error(type(inst))
+            self.logging.error((inst.args))
 
     def __getMyIpAddress(self):
         return [l for l in ([ip for ip in \
@@ -88,9 +89,9 @@ class KokuNetwork():
                     continue
                 self.handleKokuProtocol(data)
             except Exception as inst:
-                logging.error("Handle koku protocol")
-                logging.error(type(inst))
-                logging.error((inst.args))
+                self.logging.error("Handle koku protocol")
+                self.logging.error(type(inst))
+                self.logging.error((inst.args))
                 continue
         clientsoc.close()
         self.removePeer(clientaddr)
@@ -98,15 +99,15 @@ class KokuNetwork():
     def handleKokuProtocol(self, data):
         kokuStruct = pickle.loads(data)
         msgType = kokuStruct.type
-        logging.info('KokuStruct type : ')
-        logging.info('KokuStruct data : ')
+        self.logging.info('KokuStruct type : ')
+        self.logging.info('KokuStruct data : ')
         if msgType == KokuMessageType.GET_ADDR:
-            logging.info("GET_ADDR")
+            self.logging.info("GET_ADDR")
             self.broadcastMessage(KokuMessageType.ADDR, [])
         if msgType == KokuMessageType.ADDR:
             for peer in kokuStruct.data:
                 self.addPeerAndConnect(peer)
-                logging.info("ADDR ")
+                self.logging.info("ADDR ")
         if msgType == KokuMessageType.GET_DATA:
             self.broadcastMessage(KokuMessageType.DATA, [])
         if msgType == KokuMessageType.DATA:
@@ -120,22 +121,22 @@ class KokuNetwork():
         self.peersSoc[peerIp] = peerSoc
 
     def addPeerAndConnect(self, peerIp, peerPort = 55555):
-        logging.info('Fetching new peer: ' + peerIp)
+        self.logging.info('Fetching new peer: ' + peerIp)
         if self.serverStatus == 0 and peerIp != self.myIpAddress:
           return
         clientaddr = (peerIp, peerPort)
         if (peerIp in self.knownPeers):
             return
         try:
-            logging.info('Ok adding')
+            self.logging.info('Ok adding')
             clientsoc = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             clientsoc.connect(clientaddr)
             self.addPeer(clientsoc, peerIp)
             thread.start_new_thread(self.handlePeerInteractions, (clientsoc, clientaddr))
         except Exception as inst:
-            logging.error('AddPeerAndConnect')
-            logging.error(type(inst))
-            logging.error((inst.args))
+            self.logging.exception('AddPeerAndConnect: ' + str(peerIp))
+            self.logging.error(type(inst))
+            self.logging.error((inst.args))
 
     def closeAll(self):
         for peer in self.peersSoc.values():
@@ -143,11 +144,13 @@ class KokuNetwork():
         self.serverSoc.close()
 
 def main():
-    logging.basicConfig(
-        filename='/tmp/koku.log',
-        level=logging.DEBUG, format='%(asctime)s [%(levelname)s] %(message)s',
-    )
-    p = KokuNetwork('miner', logging)
+    logger = logging.getLogger(__name__)
+    logger.setLevel(logging.DEBUG)
+    logger.propagate = False
+    fh = logging.FileHandler('/tmp/koku.log', 'a')
+    fh.setLevel(logging.DEBUG)
+    logger.addHandler(fh)
+    p = KokuNetwork('miner', logger)
 
     time.sleep(3)
     p.addPeerAndConnect(sys.argv[1], int(sys.argv[3]))
