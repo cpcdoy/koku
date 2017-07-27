@@ -20,10 +20,12 @@ class Block:
         return "<Block prev:%s root:%s time:%d bits:%d pad:%d>" % (self.prev, self.root, self.time, self.bits, self.pad)
 
     def getPack(self):
-        prev_encode = self.prev.encode()
-        root_encode = self.root.encode()
+        prev_encode = bytearray()
+        prev_encode.extend(map(ord, self.prev))
+        root_encode = bytearray()
+        root_encode.extend(map(ord, self.root))
 
-        return struct.pack('ssIII', prev_encode, root_encode, self.time, self.bits, self.pad)
+        return struct.pack('32s32s3I', prev_encode, root_encode, self.time, self.bits, self.pad)
 
 def checkChain(chain):
     prev = None
@@ -38,7 +40,6 @@ def checkChain(chain):
 class gpu_miner:
     def __init__(self):
         platform = cl.get_platforms()[0]
-
         devices = platform.get_devices(cl.device_type.GPU)
         self.context = cl.Context(devices, None, None)
         self.queue = cl.CommandQueue(self.context, properties=cl.command_queue_properties.PROFILING_ENABLE)
@@ -58,18 +59,21 @@ class gpu_miner:
 
         self.nounce_begin = 0
         self.data_info = np.zeros(1, np.uint32)
-        self.data_info[0] = 16;
+        self.data_info[0] = 76
 
         self.globalThreads = self.WORK_GROUP_SIZE * 100
         self.localThreads  = 1
 
-        self.blocks = np.zeros(self.data_info[0] * self.globalThreads, bytes)
+        self.blocks = np.zeros(self.data_info[0] * self.globalThreads, np.uint8)
+
+        self.difficulty = 2**11
 
     def set_block(self, block):
         b = block
         print(b)
         b2 = b.getPack()
         print(len(b2))
+        print(np.frombuffer(b2[:], np.uint8))
         self.def_block = b
         self.data_info[0] = len(b2);
 
@@ -79,15 +83,23 @@ class gpu_miner:
         output = np.zeros(8 * self.globalThreads, np.uint32)
         mf = cl.mem_flags
 
+        self.blocks_tmp = np.zeros(self.globalThreads, Block)
+
         not_found = True
         passes = 0
+        global_index = 0
+        data_len = self.data_info[0]
+        b = self.def_block
         while not_found:
             print('Pass ', passes)
             passes += 1
-            for i in range(0, self.globalThreads, 16):
-                b = self.def_block
-                b.pad = self.nounce_begin + i
-                self.blocks[i:i+16] = np.frombuffer(b.getPack()[:], np.uint8)
+            for i in range(self.globalThreads):
+                b.pad = self.nounce_begin + global_index
+
+                self.blocks[i * data_len: (i + 1) * data_len] = np.frombuffer(b.getPack()[:], np.uint8)
+                self.blocks_tmp[i] = b
+                #print(self.blocks[i*data_len:(i+1)*data_len])
+                global_index += 1
 
             print('Transfering data...')
             data_info_buf = cl.Buffer(self.context, mf.READ_ONLY  | mf.USE_HOST_PTR, hostbuf=self.data_info)
@@ -99,14 +111,13 @@ class gpu_miner:
             exec_evt.wait()
             cl.enqueue_read_buffer(self.queue, output_buf, output).wait()
 
-            self.nounce_begin += self.globalThreads
-
             for j in range(self.globalThreads):
-                for i in range(8):
-                    print(format(output[j * 8 + i], '02x'))
-                print('')
-            #print(output)
-            #    print('Truth: ', hashlib.sha256(self.blocks[j * self.data_info[0]:(j+1) * self.data_info[0]]).hexdigest())
+                if output[j * 8] < self.difficulty:
+                    for i in range(8):
+                        print(format(output[j * 8 + i], '02x'))
+                    not_found = False
+                #print('Truth: ', hashlib.sha256(self.blocks[j * self.data_info[0]:(j+1) * self.data_info[0]]).hexdigest())
+                #print('')
             print('Time to compute: ', 1e-9 * (exec_evt.profile.end - exec_evt.profile.start))
 
 

@@ -120,7 +120,7 @@ class KokuNetwork():
         self.peersSoc[peerIp] = peerSoc
 
     def addPeerAndConnect(self, peerIp, peerPort = 55555):
-        logging.info('Fetching new peers.' + peerIp)
+        logging.info('Fetching new peer: ' + peerIp)
         if self.serverStatus == 0 and peerIp != self.myIpAddress:
           return
         clientaddr = (peerIp, peerPort)

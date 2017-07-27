@@ -45,9 +45,7 @@ uint gamma1(uint x) {
 __kernel void sha256_crypt_kernel(__global uint *data_info,__global char *plain_key,  __global uint *digest){
 
   int gid = get_global_id(0);
-  int offset = 0;
-  for (int i = 0; i < gid; i++)
-     offset += data_info[0];
+  int offset = data_info[0] * gid;
 
   plain_key = &plain_key[offset];
   digest = &digest[gid * 8];
@@ -71,7 +69,7 @@ __kernel void sha256_crypt_kernel(__global uint *data_info,__global char *plain_
 
   msg_pad=0;
 
-  ulen = data_info[1];
+  ulen = data_info[0];
   total = ulen%64>=56?2:1 + ulen/64;
 
 //  printf("ulen: %u total:%u\n", ulen, total);
