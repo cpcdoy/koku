@@ -33,7 +33,7 @@ def main():
     time.sleep(3)
     logger.info('Running koku 2')
     net.broadcastMessage(KokuMessageType.GET_ADDR, [])
-    time.sleep(1)
+    time.sleep(3)
     logger.info('Running koku 3')
     net.broadcastMessage(KokuMessageType.GET_FROM_LAST, chain[-1].id)
     logger.info(str(len(chain)))

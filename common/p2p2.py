@@ -10,7 +10,7 @@ from enum import Enum
 class KokuMessageType(Enum):
     GET_ADDR = 1
     ADDR = 2
-    GET_FROM_lAST = 3
+    GET_FROM_LAST = 3
     FROM_LAST = 4
     GET_BLOCK = 5
     BLOCK = 6
