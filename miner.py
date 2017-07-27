@@ -36,17 +36,17 @@ def main():
     time.sleep(3)
     logger.info('Running koku 3')
     net.broadcastMessage(KokuMessageType.GET_FROM_LAST, chain[-1].id)
-    logger.info(str(len(chain)))
     logger.info('Running koku 4')
     #J'ai ajouté logging ici pour que le network puisse en faire. C'est dans /tmp/koku.log
     #Ici il faut récupérer pleins de peers, je pense que c'est bon.
     #while not updateChain(net):
     #    logging.error('An error in the downloaded chain has been detected!')
 
-    #while True:
+    while True:
         #mine new block
         #if new block add to chain
         #else propagate it
+        time.sleep(1)
 
 if __name__ == "__main__":
     parser = OptionParser(description="This script is useed to mine the Koku crypto-currency. The logs are located in /tmp/koku.log")

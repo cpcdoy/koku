@@ -118,7 +118,7 @@ class KokuNetwork():
             if msgType == KokuMessageType.GET_FROM_LAST:
                 self.logging.info("GET FROM LAST")
                 blockId = kokuStruct.data
-                self.broadcastMessage(KokuMessageType.LAST, chain[blockId + 1:])
+                self.broadcastMessage(KokuMessageType.FROM_LAST, self.chain[blockId + 1:])
             if msgType == KokuMessageType.FROM_LAST:
                 self.logging.info("FROM LAST")
                 self.chain += kokuStruct.data
