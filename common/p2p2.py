@@ -4,6 +4,7 @@ import _thread as thread
 import time
 import sys
 import pickle
+from common.block import Block
 from enum import Enum
 
 class KokuMessageType(Enum):
@@ -18,11 +19,12 @@ class KokuStruct():
         self.type = 0
 
 class KokuNetwork():
-    def __init__(self, typ, logging, configFilename = '/tmp/addr.txt', port = 55555):
+    def __init__(self, typ, logging, chain, configFilename = '/tmp/addr.txt', port = 55555):
         self.ip = ''
         self.PORT = port
         self.type = typ #client / miner
         self.logging = logging # Logging configuration
+        self.chain = chain
         self.configFilename = configFilename
         self.knownPeers = set()
         self.peersSoc = {}
