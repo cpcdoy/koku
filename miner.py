@@ -13,6 +13,7 @@ from common.p2p2 import KokuStruct
 from common.block import checkChain
 from common.p2p2 import KokuNetwork
 from common.p2p2 import KokuMessageType
+from common.p2p2 import KokuNetworkPeerType
 from common.transaction import Transaction
 from gpu.gpu_miner import gpu_miner
 
@@ -46,7 +47,7 @@ def main():
         logger.error((inst.args))
 
     miner = gpu_miner(logger)
-    net = KokuNetwork('miner', logger, chain, miner)
+    net = KokuNetwork(KokuNetworkPeerType.MINER, logger, chain, miner)
     #time.sleep(3)
     net.broadcastMessage(KokuMessageType.GET_ADDR, [])
     #time.sleep(3)
