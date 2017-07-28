@@ -9,40 +9,46 @@ import time
 import logging
 
 class gpu_miner:
-    def __init__(self, logger, kernelFile):
+    def __init__(self, logger):
         self.logger = logger
         try:
-            platform = cl.get_platforms()[0]
-            devices = platform.get_devices(cl.device_type.GPU)
-            self.context = cl.Context(devices, None, None)
+            #platform = cl.get_platforms()[0]
+            #devices = platform.get_devices(cl.device_type.GPU)
+            #self.context = cl.Context(devices, None, None)
+            self.context = cl.create_some_context()
+            self.devices = self.context.get_info(cl.context_info.DEVICES)
             self.queue = cl.CommandQueue(self.context, properties=cl.command_queue_properties.PROFILING_ENABLE)
 
+            kernelFile = open('gpu/chady256.cl', 'r')
             self.miner = cl.Program(self.context, kernelFile.read()).build()
             kernelFile.close()
 
             self.WORK_GROUP_SIZE = 0
             self.preferred_multiple = 0
-            for device in devices:
+            for device in self.devices:
                 self.WORK_GROUP_SIZE += self.miner.sha256_crypt_kernel.get_work_group_info(cl.kernel_work_group_info.WORK_GROUP_SIZE, device)
-                preferred_multiple = cl.Kernel(self.miner, 'sha256_crypt_kernel').get_work_group_info(cl.kernel_work_group_info.PREFERRED_WORK_GROUP_SIZE_MULTIPLE, device)
+                self.preferred_multiple = cl.Kernel(self.miner, 'sha256_crypt_kernel').get_work_group_info(cl.kernel_work_group_info.PREFERRED_WORK_GROUP_SIZE_MULTIPLE, device)
+
+            self.logger.info('Best workgroup size :' + str(self.WORK_GROUP_SIZE))
+            self.logger.info('Preferred multiple: ' + str(self.preferred_multiple))
+
+            self.nounce_begin = 0
+            self.data_info = np.zeros(1, np.uint32)
+            self.data_info[0] = 76
+
+            self.globalThreads = self.WORK_GROUP_SIZE * 100
+            self.localThreads  = 1
+
+            self.blocks = np.zeros(self.data_info[0] * self.globalThreads, np.uint8)
+
+            self.difficulty = 2**11
+
+            self.logger.info("HERE")
+
         except Exception as inst:
-            self.logger.error("Handle koku protocol")
+            self.logger.exception("Init")
             self.logger.error(type(inst))
             self.logger.error((inst.args))
-
-        self.logger.info('Best workgroup size :' + str(self.WORK_GROUP_SIZE))
-        self.logger.info('Preferred multiple: ' + str(preferred_multiple))
-
-        self.nounce_begin = 0
-        self.data_info = np.zeros(1, np.uint32)
-        self.data_info[0] = 76
-
-        self.globalThreads = self.WORK_GROUP_SIZE * 100
-        self.localThreads  = 1
-
-        self.blocks = np.zeros(self.data_info[0] * self.globalThreads, np.uint8)
-
-        self.difficulty = 2**11
 
     def set_block(self, block):
         b = block
