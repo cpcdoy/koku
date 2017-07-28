@@ -72,13 +72,11 @@ class gpu_miner:
             output = np.zeros(8 * self.globalThreads, np.uint32)
             mf = cl.mem_flags
 
-            self.blocks_tmp = np.zeros(self.globalThreads, Block)
-
             not_found = True
             passes = 0
             global_index = 0
             data_len = self.data_info[0]
-            b = Block(b'abc', b'abc', 42)#self.def_block
+            b = self.def_block
             self.logger.info(self.data_info)
             while not_found:
                 self.logger.info('Pass ' + str(passes))
@@ -87,11 +85,6 @@ class gpu_miner:
                     b.pad = self.nounce_begin + global_index
 
                     self.blocks[i * data_len: (i + 1) * data_len] = np.frombuffer(b.getPack()[:], np.uint8)
-                    self.blocks_tmp[i] = b
-                    #self.logger.info('GetPack')
-                    #self.logger.info(b.getPack())
-                    #self.logger.info('GetPack2')
-                    #self.logger.info(self.blocks[i*data_len:(i+1)*data_len])
                     global_index += 1
 
                 self.logger.info('Transfering data...')

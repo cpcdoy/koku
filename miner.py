@@ -58,15 +58,8 @@ def main():
 
             miner.set_block(newBlock)
             nounce = miner.compute_hashes()
-            logger.info("NOUNCE")
-            logger.info(nounce.prev)
-            logger.info(nounce.root)
             m = hashlib.sha256(nounce.getPack())
-            logger.info(m.hexdigest())
-            logger.info('Truth: ' + str(hashlib.sha256(nounce.getPack()).hexdigest()))
-            logger.info('Nounce ' + str(nounce.pad))
             chain.append(nounce)
-            time.sleep(1)
 
         except Exception as inst:
             logger.exception("Main loop exception")
