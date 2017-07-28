@@ -7,19 +7,20 @@ import random
 import struct
 import time
 import logging
+from common.block import Block
 
 class gpu_miner:
     def __init__(self, logger):
         self.logger = logger
         try:
             #platform = cl.get_platforms()[0]
-            #devices = platform.get_devices(cl.device_type.GPU)
-            #self.context = cl.Context(devices, None, None)
+            #self.devices = platform.get_devices(cl.device_type.GPU)
+            #self.context = cl.Context(self.devices, None, None)
             self.context = cl.create_some_context()
             self.devices = self.context.get_info(cl.context_info.DEVICES)
             self.queue = cl.CommandQueue(self.context, properties=cl.command_queue_properties.PROFILING_ENABLE)
 
-            kernelFile = open('gpu/chady256.cl', 'r')
+            kernelFile = open('/tmp/chady256.cl', 'r')
             self.miner = cl.Program(self.context, kernelFile.read()).build()
             kernelFile.close()
 
@@ -52,14 +53,10 @@ class gpu_miner:
 
     def set_block(self, block):
         try:
-            self.logger.info('set block 1')
             b = block
-            self.logger.info('set block 1')
             self.logger.info(b)
             b2 = b.getPack()
-            self.logger.info('set block 1')
             self.logger.info(len(b2))
-            self.logger.info('set block 1')
             self.logger.info(np.frombuffer(b2[:], np.uint8))
             self.def_block = b
             self.data_info[0] = len(b2);
@@ -69,45 +66,52 @@ class gpu_miner:
             self.logger.error((inst.args))
 
     def compute_hashes(self):
-        self.logger.info(self.data_info)
-        self.logger.info(self.blocks)
-        output = np.zeros(8 * self.globalThreads, np.uint32)
-        mf = cl.mem_flags
+        try:
+            self.logger.info(self.data_info)
+            self.logger.info(self.blocks)
+            output = np.zeros(8 * self.globalThreads, np.uint32)
+            mf = cl.mem_flags
 
-        self.blocks_tmp = np.zeros(self.globalThreads, Block)
+            self.blocks_tmp = np.zeros(self.globalThreads, Block)
 
-        not_found = True
-        passes = 0
-        global_index = 0
-        data_len = self.data_info[0]
-        b = self.def_block
-        while not_found:
-            self.logger.info('Pass ' + passes)
-            passes += 1
-            for i in range(self.globalThreads):
-                b.pad = self.nounce_begin + global_index
+            not_found = True
+            passes = 0
+            global_index = 0
+            data_len = self.data_info[0]
+            b = self.def_block
+            self.logger.info(self.data_info)
+            while not_found:
+                self.logger.info('Pass ' + str(passes))
+                passes += 1
+                for i in range(self.globalThreads):
+                    b.pad = self.nounce_begin + global_index
 
-                self.blocks[i * data_len: (i + 1) * data_len] = np.frombuffer(b.getPack()[:], np.uint8)
-                self.blocks_tmp[i] = b
-                #self.logger.info(self.blocks[i*data_len:(i+1)*data_len])
-                global_index += 1
+                    self.blocks[i * data_len: (i + 1) * data_len] = np.frombuffer(b.getPack()[:], np.uint8)
+                    self.blocks_tmp[i] = b
+                    #self.logger.info(self.blocks[i*data_len:(i+1)*data_len])
+                    global_index += 1
 
-            self.logger.info('Transfering data...')
-            data_info_buf = cl.Buffer(self.context, mf.READ_ONLY  | mf.USE_HOST_PTR, hostbuf=self.data_info)
-            plain_key_buf = cl.Buffer(self.context, mf.READ_ONLY  | mf.USE_HOST_PTR, hostbuf=self.blocks)
-            output_buf = cl.Buffer(self.context, mf.WRITE_ONLY | mf.USE_HOST_PTR, hostbuf=output)
+                self.logger.info('Transfering data...')
+                data_info_buf = cl.Buffer(self.context, mf.READ_ONLY  | mf.USE_HOST_PTR, hostbuf=self.data_info)
+                plain_key_buf = cl.Buffer(self.context, mf.READ_ONLY  | mf.USE_HOST_PTR, hostbuf=self.blocks)
+                output_buf = cl.Buffer(self.context, mf.WRITE_ONLY | mf.USE_HOST_PTR, hostbuf=output)
 
-            self.logger.info('Starting computation...')
-            exec_evt = self.miner.sha256_crypt_kernel(self.queue, (self.globalThreads, ), (self.localThreads, ), data_info_buf,  plain_key_buf, output_buf)
-            exec_evt.wait()
-            cl.enqueue_read_buffer(self.queue, output_buf, output).wait()
+                self.logger.info('Starting computation...')
+                exec_evt = self.miner.sha256_crypt_kernel(self.queue, (self.globalThreads, ), (self.localThreads, ), data_info_buf,  plain_key_buf, output_buf)
+                exec_evt.wait()
+                cl.enqueue_read_buffer(self.queue, output_buf, output).wait()
 
-            for j in range(self.globalThreads):
-                if output[j * 8] < self.difficulty:
-                    for i in range(8):
-                        self.logger.info(format(output[j * 8 + i], '02x'))
-                    not_found = False
-                    return self.blocks_tmp[i]
-                #self.logger.info('Truth: ', hashlib.sha256(self.blocks[j * self.data_info[0]:(j+1) * self.data_info[0]]).hexdigest())
-                #self.logger.info('')
-            self.logger.info('Time to compute: ' + 1e-9 * (exec_evt.profile.end - exec_evt.profile.start))
+                for j in range(self.globalThreads):
+                    if output[j * 8] < self.difficulty:
+                        self.logger.info("Block found")
+                        for i in range(8):
+                            self.logger.info(format(output[j * 8 + i], '02x'))
+                        not_found = False
+                        return self.blocks_tmp[i]
+                    #self.logger.info('Truth: ', hashlib.sha256(self.blocks[j * self.data_info[0]:(j+1) * self.data_info[0]]).hexdigest())
+                    #self.logger.info('')
+                self.logger.info('Time to compute: ' + str(1e-9 * (exec_evt.profile.end - exec_evt.profile.start)))
+        except Exception as inst:
+            self.logger.exception("Compute hashes")
+            self.logger.error(type(inst))
+            self.logger.error((inst.args))
