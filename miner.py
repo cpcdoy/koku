@@ -37,8 +37,8 @@ def main():
     #    with open('.koku.chain', 'r') as cfile:
     #        chain = pickle.load(cfile)
 
-    net = KokuNetwork('miner', logger, chain)
     miner = gpu_miner(logger)
+    net = KokuNetwork('miner', logger, chain, miner)
     #time.sleep(3)
     net.broadcastMessage(KokuMessageType.GET_ADDR, [])
     #time.sleep(3)
