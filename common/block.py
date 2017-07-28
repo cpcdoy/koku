@@ -36,10 +36,11 @@ class Block:
         last = False
         total = 0
         for t in self.transactions:
-            if t.utxo == addr:
-                if t.sender == addr:
-                    last = True
+            if t.dest == addr and t.checkSig():
                 total += t.amount
+            elif t.sender == addr and t.checkSig():
+                total += t.utxo
+                last = True
         return (last, total)
 
     def getPack(self):

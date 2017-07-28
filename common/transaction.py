@@ -34,3 +34,11 @@ class Transaction:
     
     def setSig(self, sig):
         self.sig = sig
+
+    def checkSig(self):
+        vk = ecdsa.from_string(self.pubKey)
+        try:
+            vk.verify(self.sig, self.getPack(True))
+            return True
+        except ecdsa.BadSignatureError:
+            return False

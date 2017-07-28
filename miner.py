@@ -26,8 +26,9 @@ miner = None
 
 def getInitTransactions(vk, sk):
     tr = Transaction(10, 0, getAddr(vk), vk)
-    sig = sk.sign(tr.getPack(True))
-    tr.setSig(sig)
+    #We do that because this transaction is the reward
+    tr.sender = b''
+    #We don't sign it bc no signature is needed
     return [tr]
 
 def main():
@@ -57,13 +58,16 @@ def main():
 
             miner.set_block(newBlock)
             nounce = miner.compute_hashes()
-            logger.info('Nounce ' + str(nounce))
+            m = hashlib.sha256(nounce.getPack())
+            logger.info(m.hexdigest())
+            logger.info('Nounce ' + str(nounce.pad))
+            chain.append(nounce)
             time.sleep(1)
 
         except Exception as inst:
-            self.logging.exception("Main loop exception!!!!!!!")
-            self.logging.error(type(inst))
-            self.logging.error((inst.args))
+            logger.exception("Main loop exception")
+            logger.error(type(inst))
+            logger.error((inst.args))
 
 if __name__ == "__main__":
     parser = OptionParser(description="This script is useed to mine the Koku crypto-currency. The logs are located in /tmp/koku.log")
