@@ -65,6 +65,9 @@ class gpu_miner:
             self.logger.error(type(inst))
             self.logger.error((inst.args))
 
+    def interrupt(self):
+        self.not_interrupted = False
+
     def compute_hashes(self):
         try:
             self.logger.info(self.data_info)
@@ -72,13 +75,13 @@ class gpu_miner:
             output = np.zeros(8 * self.globalThreads, np.uint32)
             mf = cl.mem_flags
 
-            not_found = True
+            self.not_interrupted = True
             passes = 0
             global_index = 0
             data_len = self.data_info[0]
             b = self.def_block
             self.logger.info(self.data_info)
-            while not_found:
+            while self.not_interrupted:
                 self.logger.info('Pass ' + str(passes))
                 passes += 1
                 for i in range(self.globalThreads):
@@ -103,13 +106,14 @@ class gpu_miner:
                             self.logger.info(format(output[j * 8 + i], '02x'))
                         self.logger.info('')
                         self.logger.info('Truth: ' + str(hashlib.sha256(self.blocks[j * self.data_info[0]:(j+1) * self.data_info[0]]).hexdigest()))
-                        not_found = False
                         self.logger.info("Block found")
                         a = Block(b'', b'', 0)
                         a.unpack(self.blocks[j * self.data_info[0]:(j+1) * self.data_info[0]])
-                        return a
+                        return (a, True) if self.not_interrupted else (a, False)
+
                     #self.logger.info('')
                 self.logger.info('Time to compute: ' + str(1e-9 * (exec_evt.profile.end - exec_evt.profile.start)))
+            return (self.def_block, False)
         except Exception as inst:
             self.logger.exception("Compute hashes")
             self.logger.error(type(inst))

@@ -61,6 +61,8 @@ def main():
             m = hashlib.sha256(nounce.getPack())
             chain.append(nounce)
 
+            net.broadcastMessage(KokuMessageType.FROM_LAST, [nounce])
+
         except Exception as inst:
             logger.exception("Main loop exception")
             logger.error(type(inst))
