@@ -22,6 +22,7 @@ addr = ''
 chain = [ Block(None, None, 0) ]
 net = None
 logger = None
+miner = None
 
 def getInitTransactions(vk, sk):
     tr = Transaction(10, 0, getAddr(vk), vk)
@@ -50,7 +51,6 @@ def main():
     #while not updateChain(net):
     #    logging.error('An error in the downloaded chain has been detected!')
 
-    miner = gpu_miner(logger)
     vk = sk.get_verifying_key()
 
     while True:
@@ -93,4 +93,5 @@ if __name__ == "__main__":
                 addr = getAddr(sk.get_verifying_key())
                 logger.info('Daemon is starting')
                 logger.info('Daemon is using address: ' + addr)
+                miner = gpu_miner(logger)
                 daemon.start()

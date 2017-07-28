@@ -10,21 +10,26 @@ import logging
 
 class gpu_miner:
     def __init__(self, logger):
-        self.logger = logger
-        platform = cl.get_platforms()[0]
-        devices = platform.get_devices(cl.device_type.GPU)
-        self.context = cl.Context(devices, None, None)
-        self.queue = cl.CommandQueue(self.context, properties=cl.command_queue_properties.PROFILING_ENABLE)
+        try:
+            self.logger = logger
+            platform = cl.get_platforms()[0]
+            devices = platform.get_devices(cl.device_type.GPU)
+            self.context = cl.Context(devices, None, None)
+            self.queue = cl.CommandQueue(self.context, properties=cl.command_queue_properties.PROFILING_ENABLE)
 
-        kernelFile = open('chady256.cl', 'r')
-        self.miner = cl.Program(self.context, kernelFile.read()).build()
-        kernelFile.close()
+            kernelFile = open('gpu/chady256.cl', 'r')
+            self.miner = cl.Program(self.context, kernelFile.read()).build()
+            kernelFile.close()
 
-        self.WORK_GROUP_SIZE = 0
-        self.preferred_multiple = 0
-        for device in devices:
-            self.WORK_GROUP_SIZE += self.miner.sha256_crypt_kernel.get_work_group_info(cl.kernel_work_group_info.WORK_GROUP_SIZE, device)
-            preferred_multiple = cl.Kernel(self.miner, 'sha256_crypt_kernel').get_work_group_info(cl.kernel_work_group_info.PREFERRED_WORK_GROUP_SIZE_MULTIPLE, device)
+            self.WORK_GROUP_SIZE = 0
+            self.preferred_multiple = 0
+            for device in devices:
+                self.WORK_GROUP_SIZE += self.miner.sha256_crypt_kernel.get_work_group_info(cl.kernel_work_group_info.WORK_GROUP_SIZE, device)
+                preferred_multiple = cl.Kernel(self.miner, 'sha256_crypt_kernel').get_work_group_info(cl.kernel_work_group_info.PREFERRED_WORK_GROUP_SIZE_MULTIPLE, device)
+        except Exception as inst:
+            self.logger.exception("Init")
+            self.logger.error(type(inst))
+            self.logger.error((inst.args))
 
         self.logger.info('Best workgroup size :' + str(self.WORK_GROUP_SIZE))
         self.logger.info('Preferred multiple: ' + str(preferred_multiple))
