@@ -57,11 +57,10 @@ def main():
             newBlock.setTransactions(transactions)
 
             miner.set_block(newBlock)
-            nounce = miner.compute_hashes()
-            m = hashlib.sha256(nounce.getPack())
-            chain.append(nounce)
-
-            net.broadcastMessage(KokuMessageType.FROM_LAST, [nounce])
+            nounce, fresh = miner.compute_hashes()
+            if fresh:
+                chain.append(nounce)
+                net.broadcastMessage(KokuMessageType.FROM_LAST, [nounce])
 
         except Exception as inst:
             logger.exception("Main loop exception")
