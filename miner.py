@@ -22,6 +22,7 @@ addr = ''
 chain = [ Block(None, None, 0) ]
 net = None
 logger = None
+kernelFile = None
 
 def getInitTransactions(vk, sk):
     tr = Transaction(10, 0, getAddr(vk), vk)
@@ -50,7 +51,7 @@ def main():
     #while not updateChain(net):
     #    logging.error('An error in the downloaded chain has been detected!')
 
-    miner = gpu_miner(logger)
+    miner = gpu_miner(logger, kernelFile)
     vk = sk.get_verifying_key()
 
     while True:
@@ -89,6 +90,7 @@ if __name__ == "__main__":
                 logger.info('Daemon stopped')
         else:
             with open('.Koku.pem', 'rb') as f:
+                kernelFile = open('gpu/chady256.cl', 'r')
                 sk = ecdsa.SigningKey.from_pem(f.read())
                 addr = getAddr(sk.get_verifying_key())
                 logger.info('Daemon is starting')
