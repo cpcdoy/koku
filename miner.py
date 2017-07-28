@@ -41,8 +41,8 @@ def main():
         logger.error(type(inst))
         logger.error((inst.args))
 
-    net = KokuNetwork('miner', logger, chain)
     miner = gpu_miner(logger)
+    net = KokuNetwork('miner', logger, chain, miner)
     #time.sleep(3)
     net.broadcastMessage(KokuMessageType.GET_ADDR, [])
     #time.sleep(3)

@@ -21,8 +21,9 @@ class KokuStruct():
         self.type = 0
 
 class KokuNetwork():
-    def __init__(self, typ, logging, chain, configFilename = '/tmp/addr.txt', port = 55555):
+    def __init__(self, typ, logging, chain, miner, configFilename = '/tmp/addr.txt', port = 55555):
         self.ip = ''
+        self.miner = miner
         self.PORT = port
         self.type = typ #client / miner
         self.logging = logging # Logging configuration
@@ -126,6 +127,7 @@ class KokuNetwork():
                 chainFromLast = kokuStruct.data
                 if len(chainFromLast) > 0 and chainFromLast[0].id == chain[-1].id + 1:
                     self.chain += kokuStruct.data
+                    self.miner.interrupt()
 
         except Exception as inst:
             self.logging.exception('handleKokuProtocol: ')
