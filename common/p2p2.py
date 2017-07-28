@@ -75,7 +75,9 @@ class KokuNetwork():
             koku = KokuStruct()
             koku.data = msg
             koku.type = type
-            client.send(pickle.dumps(koku))
+            data = pickle.dumps(koku)
+            self.logging.info('Sent data : ' + str(data))
+            client.send(data)
 
     def listenPeers(self):
         while 1:
@@ -101,6 +103,7 @@ class KokuNetwork():
 
     def handleKokuProtocol(self, data):
         try:
+            self.logging.info('Received data ' + str(data))
             kokuStruct = pickle.loads(data)
             msgType = kokuStruct.type
             self.logging.info('KokuStruct type : ' + str(kokuStruct.type))

@@ -19,7 +19,7 @@ class gpu_miner:
             self.devices = self.context.get_info(cl.context_info.DEVICES)
             self.queue = cl.CommandQueue(self.context, properties=cl.command_queue_properties.PROFILING_ENABLE)
 
-            kernelFile = open('gpu/chady256.cl', 'r')
+            kernelFile = open('/tmp/chady256.cl', 'r')
             self.miner = cl.Program(self.context, kernelFile.read()).build()
             kernelFile.close()
 
@@ -51,17 +51,26 @@ class gpu_miner:
             self.logger.error((inst.args))
 
     def set_block(self, block):
-        b = block
-        print(b)
-        b2 = b.getPack()
-        print(len(b2))
-        print(np.frombuffer(b2[:], np.uint8))
-        self.def_block = b
-        self.data_info[0] = len(b2);
+        try:
+            self.logger.info('set block 1')
+            b = block
+            self.logger.info('set block 1')
+            self.logger.info(b)
+            b2 = b.getPack()
+            self.logger.info('set block 1')
+            self.logger.info(len(b2))
+            self.logger.info('set block 1')
+            self.logger.info(np.frombuffer(b2[:], np.uint8))
+            self.def_block = b
+            self.data_info[0] = len(b2);
+        except Exception as inst:
+            self.logger.exception("Set block")
+            self.logger.error(type(inst))
+            self.logger.error((inst.args))
 
     def compute_hashes(self):
-        print(self.data_info)
-        print(self.blocks)
+        self.logger.info(self.data_info)
+        self.logger.info(self.blocks)
         output = np.zeros(8 * self.globalThreads, np.uint32)
         mf = cl.mem_flags
 
@@ -73,14 +82,14 @@ class gpu_miner:
         data_len = self.data_info[0]
         b = self.def_block
         while not_found:
-            print('Pass ', passes)
+            self.logger.info('Pass ' + passes)
             passes += 1
             for i in range(self.globalThreads):
                 b.pad = self.nounce_begin + global_index
 
                 self.blocks[i * data_len: (i + 1) * data_len] = np.frombuffer(b.getPack()[:], np.uint8)
                 self.blocks_tmp[i] = b
-                #print(self.blocks[i*data_len:(i+1)*data_len])
+                #self.logger.info(self.blocks[i*data_len:(i+1)*data_len])
                 global_index += 1
 
             self.logger.info('Transfering data...')
@@ -96,9 +105,9 @@ class gpu_miner:
             for j in range(self.globalThreads):
                 if output[j * 8] < self.difficulty:
                     for i in range(8):
-                        print(format(output[j * 8 + i], '02x'))
+                        self.logger.info(format(output[j * 8 + i], '02x'))
                     not_found = False
                     return self.blocks_tmp[i]
-                #print('Truth: ', hashlib.sha256(self.blocks[j * self.data_info[0]:(j+1) * self.data_info[0]]).hexdigest())
-                #print('')
-            self.logger.info('Time to compute: ', 1e-9 * (exec_evt.profile.end - exec_evt.profile.start))
+                #self.logger.info('Truth: ', hashlib.sha256(self.blocks[j * self.data_info[0]:(j+1) * self.data_info[0]]).hexdigest())
+                #self.logger.info('')
+            self.logger.info('Time to compute: ' + 1e-9 * (exec_evt.profile.end - exec_evt.profile.start))

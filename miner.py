@@ -39,6 +39,7 @@ def main():
 
     logger.info('Running koku')
     net = KokuNetwork('miner', logger, chain)
+    miner = gpu_miner(logger)
     time.sleep(3)
     logger.info('Running koku 2')
     net.broadcastMessage(KokuMessageType.GET_ADDR, [])
@@ -51,15 +52,26 @@ def main():
     #while not updateChain(net):
     #    logging.error('An error in the downloaded chain has been detected!')
 
-    vk = sk.get_verifying_key()
+    #vk = sk.get_verifying_key()
+
+    logger.info("test 1")
+    logger.info("test 1")
+    logger.info("test 1")
+    logger.info("test 1")
+    logger.info("test 1")
+    logger.info("test 1")
+    logger.info("test 1")
+    logger.info("test 1")
 
     while True:
-        transactions = getInitTransactions(vk, sk)
-        newBlock = Block(chain[-1].getHash(), None, len(chain))
-        newBlock.setTransactions(transactions)
+        #transactions = getInitTransactions(vk, sk)
+        #newBlock = Block(chain[-1].getHash(), None, len(chain))
+        #newBlock.setTransactions(transactions)
         #Get hash prev
 
-        gpu_miner.set_block(newBlock)
+        logger.info("while 1")
+        gpu_miner.set_block(chain[-1])
+        logger.info("while 2")
         #mine new block
         #if new block add to chain
         #else propagate it
@@ -94,5 +106,4 @@ if __name__ == "__main__":
                 addr = getAddr(sk.get_verifying_key())
                 logger.info('Daemon is starting')
                 logger.info('Daemon is using address: ' + addr)
-                miner = gpu_miner(logger)
                 daemon.start()
