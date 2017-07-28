@@ -127,6 +127,9 @@ class KokuNetwork():
                 chainFromLast = kokuStruct.data
                 if len(chainFromLast) > 0 and chainFromLast[0].id == chain[-1].id + 1:
                     self.chain += kokuStruct.data
+                    with open('/tmp/.koku.chain', 'w') as f:
+                        dump = pickle.dumps(self.chain)
+                        f.write(dump)
                     self.miner.interrupt()
 
         except Exception as inst:
