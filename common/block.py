@@ -75,6 +75,7 @@ def getAmountAvailable(addr, chain):
     ans = 0
     last = False
     while i < len(rev) and not last:
-        last, amount = getIncome(rev[i])
+        last, amount = rev[i].getIncome(rev[i])
         ans += amount
+        i += 1
     return ans

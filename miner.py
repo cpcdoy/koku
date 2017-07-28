@@ -92,6 +92,8 @@ if __name__ == "__main__":
         logger.propagate = False
         fh = logging.FileHandler('/tmp/koku.log', 'a')
         fh.setLevel(logging.DEBUG)
+        formatter = logging.Formatter('%(asctime)s [%(levelname)s] %(message)s')
+        fh.setFormatter(formatter)
         logger.addHandler(fh)
         keep_fds = [fh.stream.fileno()]
 
