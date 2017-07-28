@@ -13,7 +13,7 @@ class Block:
         self.root = root
         self.id = idBlock
         self.bits = 20
-        self.pad = random.randrange(2 ** 32)
+        self.pad = 0
 
     #Sets the transactions list of this block.
     #If the Merkle root matches returns True. Returns false otherwise
