@@ -11,7 +11,7 @@ class Block:
     def __init__(self, prev, root, idBlock):
         self.prev = prev
         self.root = root
-        self.id = 0
+        self.id = idBlock
         self.bits = 20
         self.pad = random.randrange(2 ** 32)
 
