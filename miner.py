@@ -35,9 +35,11 @@ def main():
 
     try:
         if os.path.exists('/tmp/.koku.chain'):
-            with open('/tmp/.koku.chain', 'r') as cfile:
+            with open('/tmp/.koku.chain', 'rb') as cfile:
                 chain = pickle.load(cfile)
                 logger.info("Chain found until block #" + str(chain[-1].id))
+        else:
+            chain = [ Block(b'', b'', 0) ]
     except Exception as inst:
         logger.exception("Koku blockchain file not found")
         logger.error(type(inst))
@@ -67,8 +69,8 @@ def main():
             if fresh:
                 chain.append(nounce)
                 net.broadcastMessage(KokuMessageType.FROM_LAST, [nounce])
-                with open('/tmp/.koku.chain', 'w') as f:
-                    dump = pickle.dumps(self.chain)
+                with open('/tmp/.koku.chain', 'wb') as f:
+                    dump = pickle.dumps(chain)
                     f.write(dump)
 
         except Exception as inst:

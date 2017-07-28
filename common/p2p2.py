@@ -125,9 +125,9 @@ class KokuNetwork():
             if msgType == KokuMessageType.FROM_LAST:
                 self.logging.info("FROM LAST")
                 chainFromLast = kokuStruct.data
-                if len(chainFromLast) > 0 and chainFromLast[0].id == chain[-1].id + 1:
+                if len(chainFromLast) > 0 and chainFromLast[0].id == self.chain[-1].id + 1:
                     self.chain += kokuStruct.data
-                    with open('/tmp/.koku.chain', 'w') as f:
+                    with open('/tmp/.koku.chain', 'wb') as f:
                         dump = pickle.dumps(self.chain)
                         f.write(dump)
                     self.miner.interrupt()
