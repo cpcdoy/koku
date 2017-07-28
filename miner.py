@@ -34,9 +34,10 @@ def getInitTransactions(vk, sk):
 def main():
 
     try:
-        with open('/tmp/.koku.chain', 'r') as cfile:
-            chain = pickle.load(cfile)
-            logger.info("Chain found until block #" + str(chain[-1].id))
+        if os.path.exists('/tmp/.koku.chain'):
+            with open('/tmp/.koku.chain', 'r') as cfile:
+                chain = pickle.load(cfile)
+                logger.info("Chain found until block #" + str(chain[-1].id))
     except Exception as inst:
         logger.exception("Koku blockchain file not found")
         logger.error(type(inst))
