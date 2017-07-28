@@ -58,6 +58,11 @@ class Block:
         self.bits = obj[1]
         self.pad = obj[2]
 
+    def getHash(self):
+        m = hashlib.sha256()
+        m.update(self.getPack())
+        return m.digest()
+
 def checkChain(chain):
     prev = None
     for b in chain:

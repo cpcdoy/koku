@@ -14,6 +14,7 @@ from common.block import checkChain
 from common.p2p2 import KokuNetwork
 from common.p2p2 import KokuMessageType
 from common.transaction import Transaction
+from gpu.gpu_miner import gpu_miner
 
 pid = "/tmp/koku.pid"
 sk = None
@@ -21,6 +22,13 @@ addr = ''
 chain = [ Block(None, None, 0) ]
 net = None
 logger = None
+
+def getInitTransactions(vk, sk):
+    tr = Transaction(10, 0, getAddr(vk), vk)
+    sig = sk.sign(tr.getPack(True))
+    tr.setSig(sig)
+    return [tr]
+
 
 def main():
 
@@ -42,7 +50,16 @@ def main():
     #while not updateChain(net):
     #    logging.error('An error in the downloaded chain has been detected!')
 
+    miner = gpu_miner()
+    vk = sk.get_verifying_key()
+
     while True:
+        transactions = getInitTransactions(vk, sk)
+        newBlock = Block(chain[-1].getHash(), None, len(chain))
+        newBlock.setTransactions(transactions)
+        #Get hash prev
+
+        gpu_miner.set_block(newBlock)
         #mine new block
         #if new block add to chain
         #else propagate it
