@@ -7,6 +7,10 @@ import pickle
 from common.block import Block
 from enum import Enum
 
+class KokuNetworkPeerType(Enum):
+    MINER = 1
+    CLIENT = 2
+
 class KokuMessageType(Enum):
     GET_ADDR = 1
     ADDR = 2
@@ -14,6 +18,9 @@ class KokuMessageType(Enum):
     FROM_LAST = 4
     GET_BLOCK = 5
     BLOCK = 6
+    GET_TRANSACTION = 7
+    TRANSACTION = 8
+    ACKNOWLEDGE_TRANSACTION = 9
 
 class KokuStruct():
     def __init__(self):
@@ -21,7 +28,7 @@ class KokuStruct():
         self.type = 0
 
 class KokuNetwork():
-    def __init__(self, typ, logging, chain, miner, configFilename = '/tmp/addr.txt', port = 55555):
+    def __init__(self, typ, logging, chain, miner = None, configFilename = '/tmp/addr.txt', port = 55555):
         self.ip = ''
         self.miner = miner
         self.PORT = port
@@ -32,6 +39,9 @@ class KokuNetwork():
         self.knownPeers = set()
         self.peersSoc = {}
         self.myIpAddress = ""
+        self.transactions = {}
+        self.transactions_queue = []
+
         self.Init()
 
     def Init(self):
@@ -111,26 +121,41 @@ class KokuNetwork():
             self.logging.info('KokuStruct data : ' + str(kokuStruct.data))
 
             if msgType == KokuMessageType.GET_ADDR:
-                self.logging.info("GET_ADDR")
                 self.broadcastMessage(KokuMessageType.ADDR, [])
+                self.logging.info("GET_ADDR")
             if msgType == KokuMessageType.ADDR:
                 for peer in kokuStruct.data:
                     self.addPeerAndConnect(peer)
                     self.logging.info("ADDR ")
 
-            if msgType == KokuMessageType.GET_FROM_LAST:
-                self.logging.info("GET FROM LAST")
-                blockId = kokuStruct.data
-                self.broadcastMessage(KokuMessageType.FROM_LAST, self.chain[blockId + 1:])
-            if msgType == KokuMessageType.FROM_LAST:
-                self.logging.info("FROM LAST")
-                chainFromLast = kokuStruct.data
-                if len(chainFromLast) > 0 and chainFromLast[0].id == self.chain[-1].id + 1:
-                    self.chain += kokuStruct.data
-                    with open('/tmp/.koku.chain', 'wb') as f:
-                        dump = pickle.dumps(self.chain)
-                        f.write(dump)
-                    self.miner.interrupt()
+            if msgType == KokuMessageType.TRANSACTION:
+                trans = kokuStruct.data
+                self.transactions_queue.append(trans)
+                self.logging.info("TRANSACTION")
+                self.logging.info(type(trans))
+            
+            if msgType == KokuMessageType.GET_TRANSACTION:
+                self.broadcastMessage(KokuMessageType.TRANSACTION, self.transactions)
+                self.logging.info("GET_TRANSACTION")
+
+            if self.type == KokuNetworkPeerType.MINER:
+                if msgType == KokuMessageType.ACKNOWLEDGE_TRANSACTION:
+                    trans = KokuStruct.data
+                    self.transactions_queue += trans
+                    self.logging.info("ACKNOWLEDGE_TRANSACTION")
+                if msgType == KokuMessageType.GET_FROM_LAST:
+                    self.logging.info("GET FROM LAST")
+                    blockId = kokuStruct.data
+                    self.broadcastMessage(KokuMessageType.FROM_LAST, self.chain[blockId + 1:])
+                if msgType == KokuMessageType.FROM_LAST:
+                    self.logging.info("FROM LAST")
+                    chainFromLast = kokuStruct.data
+                    if len(chainFromLast) > 0 and chainFromLast[0].id == self.chain[-1].id + 1:
+                        self.chain += kokuStruct.data
+                        with open('/tmp/.koku.chain', 'wb') as f:
+                            dump = pickle.dumps(self.chain)
+                            f.write(dump)
+                        self.miner.interrupt()
 
         except Exception as inst:
             self.logging.exception('handleKokuProtocol: ')
