@@ -19,7 +19,7 @@ from gpu.gpu_miner import gpu_miner
 pid = "/tmp/koku.pid"
 sk = None
 addr = ''
-chain = [ Block(None, None, 0) ]
+chain = [ Block("", "", 0) ]
 net = None
 logger = None
 miner = None
@@ -30,7 +30,6 @@ def getInitTransactions(vk, sk):
     tr.setSig(sig)
     return [tr]
 
-
 def main():
 
     #if os.file.ispath('.koku.chain'):
@@ -39,13 +38,12 @@ def main():
 
     logger.info('Running koku')
     net = KokuNetwork('miner', logger, chain)
-    miner = gpu_miner(logger)
     time.sleep(3)
     logger.info('Running koku 2')
     net.broadcastMessage(KokuMessageType.GET_ADDR, [])
     time.sleep(3)
     logger.info('Running koku 3')
-    net.broadcastMessage(KokuMessageType.GET_FROM_LAST, chain[-1].id)
+    net.broadcastMessage(KokuMessageType.GET_FROM_LAST, 0)
     logger.info('Running koku 4')
     #J'ai ajouté logging ici pour que le network puisse en faire. C'est dans /tmp/koku.log
     #Ici il faut récupérer pleins de peers, je pense que c'est bon.
@@ -54,15 +52,6 @@ def main():
 
     #vk = sk.get_verifying_key()
 
-    logger.info("test 1")
-    logger.info("test 1")
-    logger.info("test 1")
-    logger.info("test 1")
-    logger.info("test 1")
-    logger.info("test 1")
-    logger.info("test 1")
-    logger.info("test 1")
-
     while True:
         #transactions = getInitTransactions(vk, sk)
         #newBlock = Block(chain[-1].getHash(), None, len(chain))
@@ -70,8 +59,8 @@ def main():
         #Get hash prev
 
         logger.info("while 1")
-        gpu_miner.set_block(chain[-1])
-        logger.info("while 2")
+
+        miner.set_block(chain[-1])
         #mine new block
         #if new block add to chain
         #else propagate it
@@ -106,4 +95,5 @@ if __name__ == "__main__":
                 addr = getAddr(sk.get_verifying_key())
                 logger.info('Daemon is starting')
                 logger.info('Daemon is using address: ' + addr)
+                miner = gpu_miner(logger)
                 daemon.start()

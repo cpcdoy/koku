@@ -19,7 +19,7 @@ class gpu_miner:
             self.devices = self.context.get_info(cl.context_info.DEVICES)
             self.queue = cl.CommandQueue(self.context, properties=cl.command_queue_properties.PROFILING_ENABLE)
 
-            kernelFile = open('/tmp/chady256.cl', 'r')
+            kernelFile = open('gpu/chady256.cl', 'r')
             self.miner = cl.Program(self.context, kernelFile.read()).build()
             kernelFile.close()
 
