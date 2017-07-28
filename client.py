@@ -2,9 +2,11 @@
 
 import os
 import sys
+import time
 import pickle
 import logging
 from common.address import *
+from common.block import Block
 from optparse import OptionParser
 from common.p2p2 import KokuStruct
 from common.p2p2 import KokuNetwork
@@ -52,15 +54,13 @@ if __name__ == "__main__":
                 net.waiting_for_transactions = True
                 while net.waiting_for_transactions:
                     time.sleep(1)
-                
+
                 trans = net.transactions
 
                 vk = sk.get_verifying_key()
 
-                ######## TODO Remove this
                 for b in chain:
                     b.setTransactions(trans[b.id])
-                ########
                 amount = getAmountAvailable(getAddr(vk), chain)
                 if amount - int(args.amount) < 0:
                     logger.error('You don\'t have enough money...')
@@ -69,4 +69,4 @@ if __name__ == "__main__":
                 tr = Transaction(int(args.amount), amount - int(args.amount), args.dest, vk)
                 sig = sk.sign(tr.getPack(True))
                 tr.setSig(sig)
-                #net.broadcastMessage(KokuMessageType.SEND_TRANSACTION, [tr])
+                net.broadcastMessage(KokuMessageType.ACKNOWLEDGE_TRANSACTION, [tr])
