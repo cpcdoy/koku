@@ -50,7 +50,7 @@ def main():
     #while not updateChain(net):
     #    logging.error('An error in the downloaded chain has been detected!')
 
-    miner = gpu_miner()
+    miner = gpu_miner(logger)
     vk = sk.get_verifying_key()
 
     while True:

@@ -121,10 +121,8 @@ class KokuNetwork():
             if msgType == KokuMessageType.FROM_LAST:
                 self.logging.info("FROM LAST")
                 chainFromLast = kokuStruct.data
-                if chainFromLast[0].id == chain[-1].id + 1:
+                if len(chainFromLast) > 0 and chainFromLast[0].id == chain[-1].id + 1:
                     self.chain += kokuStruct.data
-                else:
-                    self.logging.info("Corrupted chain received")
 
         except Exception as inst:
             self.logging.exception('handleKokuProtocol: ')

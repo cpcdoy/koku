@@ -6,9 +6,11 @@ import hashlib
 import random
 import struct
 import time
+import logging
 
 class gpu_miner:
-    def __init__(self):
+    def __init__(self, logger):
+        self.logger = logger
         platform = cl.get_platforms()[0]
         devices = platform.get_devices(cl.device_type.GPU)
         self.context = cl.Context(devices, None, None)
@@ -24,8 +26,8 @@ class gpu_miner:
             self.WORK_GROUP_SIZE += self.miner.sha256_crypt_kernel.get_work_group_info(cl.kernel_work_group_info.WORK_GROUP_SIZE, device)
             preferred_multiple = cl.Kernel(self.miner, 'sha256_crypt_kernel').get_work_group_info(cl.kernel_work_group_info.PREFERRED_WORK_GROUP_SIZE_MULTIPLE, device)
 
-        print('Best workgroup size :', self.WORK_GROUP_SIZE)
-        print('Preferred multiple :', preferred_multiple)
+        self.logger.info('Best workgroup size :' + str(self.WORK_GROUP_SIZE))
+        self.logger.info('Preferred multiple: ' + str(preferred_multiple))
 
         self.nounce_begin = 0
         self.data_info = np.zeros(1, np.uint32)
@@ -71,12 +73,12 @@ class gpu_miner:
                 #print(self.blocks[i*data_len:(i+1)*data_len])
                 global_index += 1
 
-            print('Transfering data...')
+            self.logger.info('Transfering data...')
             data_info_buf = cl.Buffer(self.context, mf.READ_ONLY  | mf.USE_HOST_PTR, hostbuf=self.data_info)
             plain_key_buf = cl.Buffer(self.context, mf.READ_ONLY  | mf.USE_HOST_PTR, hostbuf=self.blocks)
             output_buf = cl.Buffer(self.context, mf.WRITE_ONLY | mf.USE_HOST_PTR, hostbuf=output)
 
-            print('Starting computation...')
+            self.logger.info('Starting computation...')
             exec_evt = self.miner.sha256_crypt_kernel(self.queue, (self.globalThreads, ), (self.localThreads, ), data_info_buf,  plain_key_buf, output_buf)
             exec_evt.wait()
             cl.enqueue_read_buffer(self.queue, output_buf, output).wait()
@@ -89,4 +91,4 @@ class gpu_miner:
                     return self.blocks_tmp[i]
                 #print('Truth: ', hashlib.sha256(self.blocks[j * self.data_info[0]:(j+1) * self.data_info[0]]).hexdigest())
                 #print('')
-            print('Time to compute: ', 1e-9 * (exec_evt.profile.end - exec_evt.profile.start))
+            self.logger.info('Time to compute: ', 1e-9 * (exec_evt.profile.end - exec_evt.profile.start))
