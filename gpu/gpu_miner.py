@@ -37,7 +37,7 @@ class gpu_miner:
             self.data_info = np.zeros(1, np.uint32)
             self.data_info[0] = 76
 
-            self.globalThreads = self.WORK_GROUP_SIZE * 100
+            self.globalThreads = self.WORK_GROUP_SIZE * 1000
             self.localThreads  = 1
 
             self.blocks = np.zeros(self.data_info[0] * self.globalThreads, np.uint8)
@@ -78,7 +78,7 @@ class gpu_miner:
             passes = 0
             global_index = 0
             data_len = self.data_info[0]
-            b = self.def_block
+            b = Block(b'abc', b'abc', 42)#self.def_block
             self.logger.info(self.data_info)
             while not_found:
                 self.logger.info('Pass ' + str(passes))
@@ -88,6 +88,9 @@ class gpu_miner:
 
                     self.blocks[i * data_len: (i + 1) * data_len] = np.frombuffer(b.getPack()[:], np.uint8)
                     self.blocks_tmp[i] = b
+                    #self.logger.info('GetPack')
+                    #self.logger.info(b.getPack())
+                    #self.logger.info('GetPack2')
                     #self.logger.info(self.blocks[i*data_len:(i+1)*data_len])
                     global_index += 1
 
@@ -109,7 +112,9 @@ class gpu_miner:
                         self.logger.info('Truth: ' + str(hashlib.sha256(self.blocks[j * self.data_info[0]:(j+1) * self.data_info[0]]).hexdigest()))
                         not_found = False
                         self.logger.info("Block found")
-                        return self.blocks_tmp[j]
+                        a = Block(b'', b'', 0)
+                        a.unpack(self.blocks[j * self.data_info[0]:(j+1) * self.data_info[0]])
+                        return a
                     #self.logger.info('')
                 self.logger.info('Time to compute: ' + str(1e-9 * (exec_evt.profile.end - exec_evt.profile.start)))
         except Exception as inst:

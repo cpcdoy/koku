@@ -47,9 +47,9 @@ class Block:
         return struct.pack('32s32s3I', self.prev, self.root, self.id, self.bits, self.pad)
 
     def unpack(self, buff):
-        self.prev, data = struct.unpack('32s', buff[:32])[0].decode(), buff[32:]
-        self.root, data = struct.unpack('32s', data[:32])[0].decode(), data[32:]
-        obj = struct.decode('3I', data)
+        self.prev, data = struct.unpack('32s', buff[:32])[0], buff[32:]
+        self.root, data = struct.unpack('32s', data[:32])[0], data[32:]
+        obj = struct.unpack('3I', data)
         self.id = obj[0]
         self.bits = obj[1]
         self.pad = obj[2]
