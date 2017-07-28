@@ -4,6 +4,8 @@ import random
 import hashlib
 from common.merkle import Merkle
 
+import logging
+
 class Block:
 
     def __init__(self, prev, root, idBlock):
@@ -20,13 +22,11 @@ class Block:
         hashlist = []
         for t in transactions:
             m = hashlib.sha256()
-            m.update(t.getSignedPack())
+            m.update(t.getPack())
             hashlist.append(m.digest())
 
         #Then we can compute the Merkle root given by those hashes
         merkle = Merkle(hashlist)
-        if merkle.getRoot() != self.root:
-            return False
         self.transactions = transactions
         return True
 
@@ -43,12 +43,7 @@ class Block:
         return (last, total)
 
     def getPack(self):
-        prev_encode = bytearray()
-        prev_encode.extend(map(ord, self.prev))
-        root_encode = bytearray()
-        root_encode.extend(map(ord, self.root))
-
-        return struct.pack('32s32s3I', prev_encode, root_encode, self.id, self.bits, self.pad)
+        return struct.pack('32s32s3I', self.prev, self.root, self.id, self.bits, self.pad)
 
     def unpack(self, buff):
         self.prev, data = struct.unpack('32s', buff[:32])[0].decode(), buff[32:]

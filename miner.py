@@ -19,7 +19,7 @@ from gpu.gpu_miner import gpu_miner
 pid = "/tmp/koku.pid"
 sk = None
 addr = ''
-chain = [ Block("", "", 0) ]
+chain = [ Block(b'', b'', 0) ]
 net = None
 logger = None
 miner = None
@@ -50,17 +50,21 @@ def main():
     #while not updateChain(net):
     #    logging.error('An error in the downloaded chain has been detected!')
 
-    #vk = sk.get_verifying_key()
+    vk = sk.get_verifying_key()
 
     while True:
-        #transactions = getInitTransactions(vk, sk)
-        #newBlock = Block(chain[-1].getHash(), None, len(chain))
-        #newBlock.setTransactions(transactions)
-        #Get hash prev
+        try:
+            transactions = getInitTransactions(vk, sk)
+            newBlock = Block(chain[-1].getHash(), b'', len(chain))
+            newBlock.setTransactions(transactions)
 
-        logger.info("while 1")
+            miner.set_block(newBlock)
 
-        miner.set_block(chain[-1])
+        except Exception as inst:
+            self.logging.exception("Main loop exception!!!!!!!")
+            self.logging.error(type(inst))
+            self.logging.error((inst.args))
+
         #mine new block
         #if new block add to chain
         #else propagate it
