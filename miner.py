@@ -3,7 +3,7 @@
 import os
 import time
 import signal
-#import pickle
+import pickle
 import logging
 from common.address import *
 from common.block import Block
@@ -33,16 +33,20 @@ def getInitTransactions(vk, sk):
 
 def main():
 
-    #if os.file.ispath('.koku.chain'):
-    #    with open('.koku.chain', 'r') as cfile:
-    #        chain = pickle.load(cfile)
+    try:
+        with open('/tmp/.koku.chain', 'r') as cfile:
+            chain = pickle.load(cfile)
+    except Exception as inst:
+        logger.exception("Koku blockchain file not found")
+        logger.error(type(inst))
+        logger.error((inst.args))
 
     net = KokuNetwork('miner', logger, chain)
     miner = gpu_miner(logger)
     #time.sleep(3)
     net.broadcastMessage(KokuMessageType.GET_ADDR, [])
     #time.sleep(3)
-    net.broadcastMessage(KokuMessageType.GET_FROM_LAST, 0)
+    net.broadcastMessage(KokuMessageType.GET_FROM_LAST, chain[-1].id)
     #J'ai ajouté logging ici pour que le network puisse en faire. C'est dans /tmp/koku.log
     #Ici il faut récupérer pleins de peers, je pense que c'est bon.
     #while not updateChain(net):
