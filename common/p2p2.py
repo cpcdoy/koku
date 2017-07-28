@@ -41,6 +41,7 @@ class KokuNetwork():
         self.myIpAddress = ""
         self.transactions = {}
         self.transactions_queue = []
+        self.waiting_for_transactions = False
 
         self.Init()
 
@@ -130,10 +131,11 @@ class KokuNetwork():
 
             if msgType == KokuMessageType.TRANSACTION:
                 trans = kokuStruct.data
-                self.transactions_queue.append(trans)
+                self.transactions = trans
+                self.waiting_for_transactions = False
                 self.logging.info("TRANSACTION")
                 self.logging.info(type(trans))
-            
+
             if msgType == KokuMessageType.GET_TRANSACTION:
                 self.broadcastMessage(KokuMessageType.TRANSACTION, self.transactions)
                 self.logging.info("GET_TRANSACTION")
@@ -141,7 +143,7 @@ class KokuNetwork():
             if self.type == KokuNetworkPeerType.MINER:
                 if msgType == KokuMessageType.ACKNOWLEDGE_TRANSACTION:
                     trans = KokuStruct.data
-                    self.transactions_queue += trans
+                    self.transactions_queue.append(trans)
                     self.logging.info("ACKNOWLEDGE_TRANSACTION")
                 if msgType == KokuMessageType.GET_FROM_LAST:
                     self.logging.info("GET FROM LAST")

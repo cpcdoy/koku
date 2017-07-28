@@ -45,14 +45,21 @@ if __name__ == "__main__":
                 fh.setFormatter(formatter)
                 logger.addHandler(fh)
 
-                #net = KokuNetwork('client', logger, chain, None)
+                net = KokuNetwork('client', logger, chain, None)
+                net.broadcastMessage(KokuMessageType.GET_FROM_LAST, chain[-1].id)
+                net.broadcastMessage(KokuMessageType.GET_TRANSACTION, [])
+
+                net.waiting_for_transactions = True
+                while net.waiting_for_transactions:
+                    time.sleep(1)
+                
+                trans = net.transactions
 
                 vk = sk.get_verifying_key()
 
                 ######## TODO Remove this
                 for b in chain:
-                    aux = Transaction(10, 0, getAddr(vk), vk)
-                    b.setTransactions([aux])
+                    b.setTransactions(trans[b.id])
                 ########
                 amount = getAmountAvailable(getAddr(vk), chain)
                 if amount - int(args.amount) < 0:

@@ -59,6 +59,10 @@ def main():
 
     vk = sk.get_verifying_key()
 
+    #chain[0].setTransactions([Transaction(42, 42, getAddr(vk), vk)])
+    for b in chain:
+        net.transactions[b.id] = b.transactions
+
     while True:
         try:
             transactions = getInitTransactions(vk, sk)
@@ -69,6 +73,7 @@ def main():
             nounce, fresh = miner.compute_hashes()
             if fresh:
                 chain.append(nounce)
+                net.transactions[nounce.id] = nounce.transactions
                 net.broadcastMessage(KokuMessageType.FROM_LAST, [nounce])
                 with open('/tmp/.koku.chain', 'wb') as f:
                     dump = pickle.dumps(chain)
@@ -110,4 +115,5 @@ if __name__ == "__main__":
                 addr = getAddr(sk.get_verifying_key())
                 logger.info('Daemon is starting')
                 logger.info('Daemon is using address: ' + addr)
+                #main()
                 daemon.start()

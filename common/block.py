@@ -14,6 +14,7 @@ class Block:
         self.id = idBlock
         self.bits = 20
         self.pad = 0
+        self.transactions = []
 
     #Sets the transactions list of this block.
     #If the Merkle root matches returns True. Returns false otherwise
