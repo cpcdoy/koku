@@ -100,7 +100,6 @@ class KokuNetwork():
         self.removePeer(clientaddr)
 
     def handleKokuProtocol(self, data):
-
         try:
             kokuStruct = pickle.loads(data)
             msgType = kokuStruct.type
@@ -121,7 +120,11 @@ class KokuNetwork():
                 self.broadcastMessage(KokuMessageType.FROM_LAST, self.chain[blockId + 1:])
             if msgType == KokuMessageType.FROM_LAST:
                 self.logging.info("FROM LAST")
-                self.chain += kokuStruct.data
+                chainFromLast = kokuStruct.data
+                if chainFromLast[0].id == chain[-1].id + 1:
+                    self.chain += kokuStruct.data
+                else:
+                    self.logging.info("Corrupted chain received")
 
         except Exception as inst:
             self.logging.exception('handleKokuProtocol: ')
