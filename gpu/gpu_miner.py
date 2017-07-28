@@ -103,12 +103,13 @@ class gpu_miner:
 
                 for j in range(self.globalThreads):
                     if output[j * 8] < self.difficulty:
-                        self.logger.info("Block found")
                         for i in range(8):
                             self.logger.info(format(output[j * 8 + i], '02x'))
+                        self.logger.info('')
+                        self.logger.info('Truth: ' + str(hashlib.sha256(self.blocks[j * self.data_info[0]:(j+1) * self.data_info[0]]).hexdigest()))
                         not_found = False
-                        return self.blocks_tmp[i]
-                    #self.logger.info('Truth: ', hashlib.sha256(self.blocks[j * self.data_info[0]:(j+1) * self.data_info[0]]).hexdigest())
+                        self.logger.info("Block found")
+                        return self.blocks_tmp[j]
                     #self.logger.info('')
                 self.logger.info('Time to compute: ' + str(1e-9 * (exec_evt.profile.end - exec_evt.profile.start)))
         except Exception as inst:
